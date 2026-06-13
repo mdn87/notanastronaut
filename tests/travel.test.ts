@@ -1,0 +1,59 @@
+import { describe, expect, it } from 'vitest';
+import { TravelMachine } from '../src/core/travel';
+
+const mk = (opts?: { transitDuration?: number }) => new TravelMachine(6, opts);
+
+describe('TravelMachine', () => {
+  it('starts at node 0', () => {
+    expect(mk().state).toEqual({ kind: 'atNode', index: 0 });
+  });
+
+  it('advance starts a transit and tick completes it', () => {
+    const m = mk({ transitDuration: 1.5 });
+    expect(m.advance()).toBe(true);
+    expect(m.state).toEqual({ kind: 'inTransit', from: 0, to: 1, t: 0 });
+    m.tick(0.75);
+    expect(m.state).toMatchObject({ kind: 'inTransit', t: 0.5 });
+    m.tick(0.75);
+    expect(m.state).toEqual({ kind: 'atNode', index: 1 });
+  });
+
+  it('ignores verbs while in transit', () => {
+    const m = mk();
+    m.advance();
+    expect(m.advance()).toBe(false);
+    expect(m.back()).toBe(false);
+    expect(m.jumpTo(4)).toBe(false);
+  });
+
+  it('clamps at the ends', () => {
+    const m = mk();
+    expect(m.back()).toBe(false); // at node 0
+    const last = mk();
+    last.jumpTo(5);
+    last.tick(10);
+    expect(last.state).toEqual({ kind: 'atNode', index: 5 });
+    expect(last.advance()).toBe(false);
+  });
+
+  it('jumpTo same node is a no-op', () => {
+    const m = mk();
+    expect(m.jumpTo(0)).toBe(false);
+  });
+
+  it('transitDuration 0 arrives on next tick', () => {
+    const m = mk({ transitDuration: 0 });
+    m.advance();
+    m.tick(0.016);
+    expect(m.state).toEqual({ kind: 'atNode', index: 1 });
+  });
+
+  it('fires onArrive with the node index', () => {
+    const m = mk({ transitDuration: 1 });
+    const arrivals: number[] = [];
+    m.onArrive((i) => arrivals.push(i));
+    m.advance(); m.tick(1);
+    m.jumpTo(4); m.tick(0.5); m.tick(0.5);
+    expect(arrivals).toEqual([1, 4]);
+  });
+});
