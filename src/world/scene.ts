@@ -171,7 +171,6 @@ export class WorldScene {
   }
 
   dispose(): void {
-    this.renderer.dispose();
     this.scene.traverse((o) => {
       const geometry = (o as { geometry?: THREE.BufferGeometry }).geometry;
       if (geometry) geometry.dispose();
@@ -186,5 +185,6 @@ export class WorldScene {
         mm.dispose();
       }
     });
+    this.renderer.dispose();
   }
 }

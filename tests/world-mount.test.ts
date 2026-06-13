@@ -3,9 +3,11 @@ import { NODES, SITE } from '../src/content/nodes';
 
 const mocks = vi.hoisted(() => {
   const scene = { dispose: vi.fn(), resize: vi.fn() };
+  const cleanupWire = vi.fn();
   return {
+    cleanupWire,
     scene,
-    wireWorld: vi.fn(),
+    wireWorld: vi.fn(() => cleanupWire),
     WorldScene: vi.fn(() => scene),
   };
 });
@@ -29,7 +31,11 @@ interface FakeBody {
   prepend: (canvas: FakeCanvas) => void;
 }
 
-function installFakeDom(): { body: FakeBody; removeEventListener: ReturnType<typeof vi.fn> } {
+function installFakeDom(): {
+  body: FakeBody;
+  addEventListener: ReturnType<typeof vi.fn>;
+  removeEventListener: ReturnType<typeof vi.fn>;
+} {
   const body: FakeBody = {
     children: [],
     prepend(canvas) {
@@ -58,17 +64,19 @@ function installFakeDom(): { body: FakeBody; removeEventListener: ReturnType<typ
       return canvas;
     },
   };
+  const addEventListener = vi.fn();
   const removeEventListener = vi.fn();
   vi.stubGlobal('document', document);
-  vi.stubGlobal('addEventListener', vi.fn());
+  vi.stubGlobal('addEventListener', addEventListener);
   vi.stubGlobal('removeEventListener', removeEventListener);
-  return { body, removeEventListener };
+  return { body, addEventListener, removeEventListener };
 }
 
 describe('mountWorld', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.WorldScene.mockImplementation(() => mocks.scene);
+    mocks.wireWorld.mockImplementation(() => mocks.cleanupWire);
   });
 
   afterEach(() => {
@@ -85,6 +93,24 @@ describe('mountWorld', () => {
       .rejects.toThrow('webgl unavailable');
 
     expect(body.children).toEqual([]);
+  });
+
+  it('returns an idempotent cleanup for canvas, listener, scene, and wiring', async () => {
+    const { body, addEventListener, removeEventListener } = installFakeDom();
+
+    const cleanup = await mountWorld({ nodes: NODES, site: SITE, reducedMotion: false });
+
+    expect(body.children).toHaveLength(1);
+    expect(addEventListener).toHaveBeenCalledTimes(1);
+    expect(mocks.wireWorld).toHaveBeenCalledTimes(1);
+
+    cleanup();
+    cleanup();
+
+    expect(body.children).toEqual([]);
+    expect(mocks.cleanupWire).toHaveBeenCalledTimes(1);
+    expect(removeEventListener).toHaveBeenCalledTimes(1);
+    expect(mocks.scene.dispose).toHaveBeenCalledTimes(1);
   });
 
   it('removes the canvas, listener, and scene when wiring fails', async () => {
