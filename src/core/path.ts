@@ -15,7 +15,7 @@ export class FlightPath {
 
   constructor(points: Vec3[]) {
     if (points.length < 2) throw new Error('FlightPath needs >= 2 points');
-    this.pts = points;
+    this.pts = points.map((p) => ({ x: p.x, y: p.y, z: p.z }));
   }
 
   sample(u: number): Vec3 {
