@@ -18,6 +18,7 @@ export function wireWorld(scene: WorldScene, opts: MountOpts): WorldCleanup {
   });
   const wheel = new WheelIntent();
   const canvas = scene.renderer.domElement;
+  let suppressHistoryPush = false;
 
   const depart = () => {
     if (travel.state.kind === 'inTransit') {
@@ -33,6 +34,25 @@ export function wireWorld(scene: WorldScene, opts: MountOpts): WorldCleanup {
   const jumpTo = (index: number) => {
     if (travel.jumpTo(index)) depart();
   };
+  const settleTransitWithoutHistoryPush = () => {
+    if (travel.state.kind !== 'inTransit') return;
+    suppressHistoryPush = true;
+    try {
+      travel.tick(Number.POSITIVE_INFINITY);
+    } finally {
+      suppressHistoryPush = false;
+    }
+  };
+  const syncToCurrentRoute = () => {
+    const index = routeToIndex(location.pathname, nodes);
+    if (index === null) return;
+    settleTransitWithoutHistoryPush();
+    if (travel.state.kind === 'atNode' && travel.state.index === index) {
+      hud.setAtNode(index);
+      return;
+    }
+    jumpTo(index);
+  };
 
   const startIndex = routeToIndex(location.pathname, nodes) ?? 0;
   if (startIndex !== 0) {
@@ -45,7 +65,7 @@ export function wireWorld(scene: WorldScene, opts: MountOpts): WorldCleanup {
     hud.setAtNode(index);
     const route = nodes[index]?.route;
     const nextUrl = route ? `${route}${location.search}` : null;
-    if (nextUrl && `${location.pathname}${location.search}` !== nextUrl) {
+    if (!suppressHistoryPush && nextUrl && `${location.pathname}${location.search}` !== nextUrl) {
       history.pushState(null, '', nextUrl);
     }
   });
@@ -85,8 +105,7 @@ export function wireWorld(scene: WorldScene, opts: MountOpts): WorldCleanup {
   canvas.addEventListener('click', onClick);
 
   const onPopstate = () => {
-    const index = routeToIndex(location.pathname, nodes);
-    if (index !== null) jumpTo(index);
+    syncToCurrentRoute();
   };
   addEventListener('popstate', onPopstate);
 

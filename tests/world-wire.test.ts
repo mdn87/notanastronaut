@@ -225,6 +225,30 @@ describe('wireWorld', () => {
     cleanup();
   });
 
+  it('syncs popstate during an in-flight transit without re-pushing the stale destination', () => {
+    const { callbacks } = installAnimationFrame();
+    const { canvas, history, location, windowTarget } = installDom('/', '?mode=world');
+    const scene = makeScene(canvas);
+
+    const cleanup = wireWorld(scene, { nodes: NODES, site: SITE, reducedMotion: true });
+
+    windowTarget.dispatch('keydown', { key: 'PageDown' });
+    expect(hudMocks.instances[0]!.setTransit).toHaveBeenLastCalledWith(1);
+
+    location.pathname = '/contact';
+    windowTarget.dispatch('popstate');
+
+    expect(hudMocks.instances[0]!.setTransit).toHaveBeenLastCalledWith(5);
+
+    runFrame(callbacks, 1, performance.now() + 16);
+
+    expect(hudMocks.instances[0]!.setAtNode).toHaveBeenLastCalledWith(5);
+    expect(history.pushState).not.toHaveBeenCalled();
+    expect(scene.frame).toHaveBeenCalledWith(expect.any(Number), { kind: 'atNode', index: 5 });
+
+    cleanup();
+  });
+
   it('returns an idempotent cleanup that cancels raf and removes every registered listener', () => {
     const { callbacks, cancelAnimationFrame, requestAnimationFrame } = installAnimationFrame();
     const { canvas, canvasTarget, windowTarget } = installDom();
