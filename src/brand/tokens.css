@@ -1,0 +1,14 @@
+/* Brand palette lifted from notanastronaut.net. Final hex values get
+   re-checked against astronaut_me.ai during the art task. */
+:root {
+  --bg: #ffffff;
+  --ink: #2f3e4a;          /* body text */
+  --sky: #4ab3d4;          /* headline blue */
+  --sky-line: #cfe4f0;     /* line-art strokes */
+  --sky-faint: #e8f1f7;    /* far layer / dividers */
+  --accent: #e8743b;       /* orange — the joke, highlights */
+  --ok: #5da583;
+  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --font-script: Georgia, "Times New Roman", serif; /* temporary fallback until font matching */
+}
