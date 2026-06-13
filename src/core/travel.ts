@@ -44,14 +44,14 @@ export class TravelMachine {
     if (t >= 1) {
       const to = this.state.to;
       this.state = { kind: 'atNode', index: to };
-      for (const cb of this.arriveCbs) cb(to);
+      for (const cb of [...this.arriveCbs]) cb(to);
     } else {
       this.state = { ...this.state, t };
     }
   }
 
   private startTransit(to: number): boolean {
-    if (to < 0 || to >= this.nodeCount) return false;
+    if (!Number.isInteger(to) || to < 0 || to >= this.nodeCount) return false;
     const from = (this.state as { index: number }).index;
     this.state = { kind: 'inTransit', from, to, t: 0 };
     return true;

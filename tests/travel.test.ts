@@ -24,6 +24,7 @@ describe('TravelMachine', () => {
     expect(m.advance()).toBe(false);
     expect(m.back()).toBe(false);
     expect(m.jumpTo(4)).toBe(false);
+    expect(m.state).toEqual({ kind: 'inTransit', from: 0, to: 1, t: 0 });
   });
 
   it('clamps at the ends', () => {
@@ -34,6 +35,18 @@ describe('TravelMachine', () => {
     last.tick(10);
     expect(last.state).toEqual({ kind: 'atNode', index: 5 });
     expect(last.advance()).toBe(false);
+  });
+
+  it('rejects invalid jump targets without changing state', () => {
+    const m = mk();
+    expect(m.jumpTo(Number.NaN)).toBe(false);
+    expect(m.state).toEqual({ kind: 'atNode', index: 0 });
+    expect(m.jumpTo(1.5)).toBe(false);
+    expect(m.state).toEqual({ kind: 'atNode', index: 0 });
+    expect(m.jumpTo(-1)).toBe(false);
+    expect(m.state).toEqual({ kind: 'atNode', index: 0 });
+    expect(m.jumpTo(6)).toBe(false);
+    expect(m.state).toEqual({ kind: 'atNode', index: 0 });
   });
 
   it('jumpTo same node is a no-op', () => {
@@ -55,5 +68,23 @@ describe('TravelMachine', () => {
     m.advance(); m.tick(1);
     m.jumpTo(4); m.tick(0.5); m.tick(0.5);
     expect(arrivals).toEqual([1, 4]);
+  });
+
+  it('does not fire callbacks registered during the same arrival', () => {
+    const m = mk({ transitDuration: 1 });
+    const arrivals: string[] = [];
+    let registered = false;
+    m.onArrive((i) => {
+      arrivals.push(`first:${i}`);
+      if (!registered) {
+        registered = true;
+        m.onArrive((j) => arrivals.push(`second:${j}`));
+      }
+    });
+
+    m.advance(); m.tick(1);
+    expect(arrivals).toEqual(['first:1']);
+    m.advance(); m.tick(1);
+    expect(arrivals).toEqual(['first:1', 'first:2', 'second:2']);
   });
 });
