@@ -7,14 +7,14 @@ import type { SITE } from '../content/nodes';
  */
 export function renderListPage(nodes: NodeDef[], site: typeof SITE): string {
   const nav = nodes
-    .map((n) => `<a href="#${n.id}">${esc(n.title)}</a>`)
+    .map((n) => `<a href="#${esc(n.id)}">${esc(n.title)}</a>`)
     .join('\n    ');
   const sections = nodes
     .map((n, i) => {
       const h = n.kind === 'intro'
         ? `<h1>${esc(n.title)}</h1>`
         : `<h2>${esc(n.title)}</h2>`;
-      return `<section id="${n.id}" aria-label="${esc(n.title)}">
+      return `<section id="${esc(n.id)}" aria-label="${esc(n.title)}">
   ${h}
   <p class="node-route">NODE ${String(i + 1).padStart(2, '0')}/06 · ${esc(n.route)}</p>
   <p><em>${esc(n.tagline)}</em></p>

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { NODES, SITE } from '../src/content/nodes';
 import { renderListPage } from '../src/fallback/render';
+import type { NodeDef } from '../src/core/types';
 
 describe('renderListPage', () => {
   const html = renderListPage(NODES, SITE);
@@ -25,5 +26,34 @@ describe('renderListPage', () => {
 
   it('links every node in the nav', () => {
     for (const n of NODES) expect(html).toContain(`href="#${n.id}"`);
+  });
+
+  it('escapes scalar content while preserving trusted body html', () => {
+    const nodes: NodeDef[] = [
+      {
+        id: 'bad"&node',
+        title: 'A <B> & "C"',
+        route: '/unsafe?x=<tag>&q="quote"',
+        accent: '#4ab3d4',
+        pos: { x: 0, y: 0, z: 0 },
+        tagline: 'Tag <line> & "quote"',
+        body: '<p><strong>trusted</strong> & raw</p>',
+        kind: 'intro',
+      },
+    ];
+    const syntheticSite = {
+      title: 'Synthetic',
+      origin: 'https://example.test',
+      joke: 'Joke <& "quote">',
+    };
+
+    const syntheticHtml = renderListPage(nodes, syntheticSite);
+
+    expect(syntheticHtml).toContain('href="#bad&quot;&amp;node"');
+    expect(syntheticHtml).toContain('id="bad&quot;&amp;node"');
+    expect(syntheticHtml).toContain('<h1>A &lt;B&gt; &amp; &quot;C&quot;</h1>');
+    expect(syntheticHtml).toContain('<em>Tag &lt;line&gt; &amp; &quot;quote&quot;</em>');
+    expect(syntheticHtml).toContain('<footer><p class="joke">Joke &lt;&amp; &quot;quote&quot;&gt;</p></footer>');
+    expect(syntheticHtml).toContain('<p><strong>trusted</strong> & raw</p>');
   });
 });
