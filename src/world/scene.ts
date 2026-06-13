@@ -163,10 +163,17 @@ export class WorldScene {
   dispose(): void {
     this.renderer.dispose();
     this.scene.traverse((o) => {
-      if (o instanceof THREE.Mesh || o instanceof THREE.LineSegments || o instanceof THREE.Line) {
-        o.geometry.dispose();
-        const m = o.material as THREE.Material | THREE.Material[];
-        (Array.isArray(m) ? m : [m]).forEach((mm) => mm.dispose());
+      const geometry = (o as { geometry?: THREE.BufferGeometry }).geometry;
+      if (geometry) geometry.dispose();
+
+      const material = (o as { material?: THREE.Material | THREE.Material[] }).material;
+      const materials = Array.isArray(material) ? material : material ? [material] : [];
+      for (const mm of materials) {
+        const map = (mm as THREE.Material & { map?: THREE.Texture }).map;
+        if (map) {
+          map.dispose();
+        }
+        mm.dispose();
       }
     });
   }
