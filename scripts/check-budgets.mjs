@@ -15,7 +15,21 @@ const LIMITS = {
 const WORLD_CHUNK = /^(?:three|mount|wire|world|scene)[-.]/;
 const FALLBACK_CHUNK = /^index[-.]/;
 const JS_CSS = new Set(['.js', '.css']);
-const MEDIA = new Set(['.avif', '.gif', '.jpg', '.jpeg', '.png', '.svg', '.webp', '.woff', '.woff2']);
+const MEDIA = new Set([
+  '.avif',
+  '.eot',
+  '.gif',
+  '.ico',
+  '.jpg',
+  '.jpeg',
+  '.otf',
+  '.png',
+  '.svg',
+  '.ttf',
+  '.webp',
+  '.woff',
+  '.woff2',
+]);
 
 function* walk(dir) {
   for (const entry of readdirSync(dir).sort()) {
@@ -114,17 +128,21 @@ for (const path of files) {
 }
 
 const rows = [
-  ['fallback-first (homepage html + core JS/CSS)', fallback, LIMITS.fallback],
-  ['world chunk (three + world adapters)', world, LIMITS.world],
-  ['total JS+CSS', totalJsCss, LIMITS.totalJsCss],
-  ['homepage images+fonts', homepageMedia, LIMITS.homepageMedia],
+  ['fallback-first (homepage html + core JS/CSS)', fallback, LIMITS.fallback, '<'],
+  ['world chunk (three + world adapters)', world, LIMITS.world, '<='],
+  ['total JS+CSS', totalJsCss, LIMITS.totalJsCss, '<='],
+  ['homepage images+fonts', homepageMedia, LIMITS.homepageMedia, '<='],
 ];
 
 let failed = false;
-for (const [label, size, limit] of rows) {
-  const ok = size <= limit;
+for (const [label, size, limit, comparator] of rows) {
+  const ok = comparator === '<' ? size < limit : size <= limit;
   if (!ok) failed = true;
-  console.log(`${ok ? 'OK  ' : 'FAIL'} ${label}: ${(size / 1000).toFixed(1)} KB / ${(limit / 1000).toFixed(0)} KB`);
+  const line = `${ok ? 'OK  ' : 'FAIL'} ${label}: ${(size / 1000).toFixed(1)} KB / ${comparator} ${(limit / 1000).toFixed(0)} KB`;
+  console.log(line);
+  if (!ok) {
+    console.error(`Budget exceeded: ${label} is ${size} gzip bytes; limit is ${comparator} ${limit} gzip bytes.`);
+  }
 }
 
 process.exit(failed ? 1 : 0);
