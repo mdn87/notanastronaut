@@ -102,4 +102,36 @@ describe('budget checker', () => {
       'assets/paper.jpg',
     ]));
   });
+
+  it('counts homepage media discovered from html, fallback css, and manifest assets', () => {
+    const dist = makeDist();
+    const files = {
+      'index.html': `
+        <script type="module" src="/assets/index-a.js"></script>
+        <img srcset="/assets/hero.png?size=1 1x, assets/hero@2x.webp#large 2x">
+      `,
+      'assets/index-a.js': 'console.log("entry");',
+      'assets/index-a.css': '@font-face { src: url("font.woff2?v=1"); }',
+      'assets/hero.png': 'hero-1x',
+      'assets/hero@2x.webp': 'hero-2x',
+      'assets/font.woff2': 'font',
+      'assets/imported.svg': '<svg></svg>',
+    };
+    for (const [name, text] of Object.entries(files)) writeFile(dist, name, text);
+    writeFile(dist, '.vite/manifest.json', JSON.stringify({
+      'index.html': {
+        file: 'assets/index-a.js',
+        css: ['assets/index-a.css'],
+        assets: ['assets/imported.svg'],
+        isEntry: true,
+      },
+    }));
+
+    expect(measureBudgets({ dist }).homepageMedia).toBe(
+      gz(files['assets/hero.png'])
+      + gz(files['assets/hero@2x.webp'])
+      + gz(files['assets/font.woff2'])
+      + gz(files['assets/imported.svg']),
+    );
+  });
 });
