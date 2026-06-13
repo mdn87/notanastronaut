@@ -132,5 +132,6 @@ export function wireWorld(scene: WorldScene, opts: MountOpts): WorldCleanup {
     removeEventListener('popstate', onPopstate);
     canvas.removeEventListener('click', onClick);
     unlistenArrive();
+    hud.dispose();
   };
 }

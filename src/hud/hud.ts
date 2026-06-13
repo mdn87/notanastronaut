@@ -6,6 +6,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
 /** DOM overlay adapter: console strip + node panel. Real HTML, never canvas text. */
 export class Hud {
+  private readonly root: HTMLElement;
   private strip!: HTMLElement;
   private status!: HTMLElement;
   private hint!: HTMLElement;
@@ -14,6 +15,7 @@ export class Hud {
   private currentKey: string | null = null;
 
   constructor(root: HTMLElement, nodes: NodeDef[], site: typeof SITE) {
+    this.root = root;
     this.nodes = nodes;
     root.innerHTML = `
       <div class="hud-brand"><b>HI.</b> I’m Matt <span class="joke"></span></div>
@@ -27,6 +29,11 @@ export class Hud {
     this.status = root.querySelector('.status')!;
     this.hint = root.querySelector('.hint')!;
     this.panel = root.querySelector('.hud-panel')!;
+  }
+
+  dispose(): void {
+    this.root.replaceChildren();
+    this.currentKey = null;
   }
 
   setAtNode(index: number): void {

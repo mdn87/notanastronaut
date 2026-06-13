@@ -9,6 +9,7 @@ const hudMocks = vi.hoisted(() => {
     site: unknown;
     setAtNode: ReturnType<typeof vi.fn>;
     setTransit: ReturnType<typeof vi.fn>;
+    dispose: ReturnType<typeof vi.fn>;
   }> = [];
 
   const Hud = vi.fn(function (
@@ -18,6 +19,7 @@ const hudMocks = vi.hoisted(() => {
       site: unknown;
       setAtNode: ReturnType<typeof vi.fn>;
       setTransit: ReturnType<typeof vi.fn>;
+      dispose: ReturnType<typeof vi.fn>;
     },
     root: unknown,
     nodes: unknown,
@@ -28,6 +30,7 @@ const hudMocks = vi.hoisted(() => {
     this.site = site;
     this.setAtNode = vi.fn();
     this.setTransit = vi.fn();
+    this.dispose = vi.fn();
     instances.push(this);
   });
 
@@ -273,6 +276,7 @@ describe('wireWorld', () => {
 
     expect(cancelAnimationFrame).toHaveBeenCalledTimes(1);
     expect(cancelAnimationFrame).toHaveBeenCalledWith(2);
+    expect(hudMocks.instances[0]!.dispose).toHaveBeenCalledTimes(1);
     expect(windowTarget.listenerCount()).toBe(0);
     expect(canvasTarget.listenerCount()).toBe(0);
   });
