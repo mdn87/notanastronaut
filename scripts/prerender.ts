@@ -1,5 +1,5 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { NodeDef } from '../src/core/types';
 import { NODES, SITE } from '../src/content/nodes';
@@ -29,6 +29,20 @@ export function prerender(
   return pages;
 }
 
+export function routeOutFile(dist: string, route: string): string {
+  if (route === '/') return resolve(dist, 'index.html');
+  if (!route.startsWith('/')) throw new Error(`route must start with /: ${route}`);
+  if (route.includes('\\')) throw new Error(`route must not contain backslashes: ${route}`);
+  const segments = route.slice(1).split('/');
+  if (segments.some((segment) => segment === '' || segment === '.' || segment === '..')) {
+    throw new Error(`unsafe route path: ${route}`);
+  }
+  const out = resolve(dist, ...segments, 'index.html');
+  const root = resolve(dist);
+  if (out !== root && !out.startsWith(root + sep)) throw new Error(`route escapes dist: ${route}`);
+  return out;
+}
+
 function esc(s: string): string {
   return s
     .replace(/&/g, '&amp;')
@@ -43,7 +57,7 @@ if (isMain) {
   const template = readFileSync(join(dist, 'index.html'), 'utf8');
   const pages = prerender(template, NODES, SITE);
   for (const [route, html] of Object.entries(pages)) {
-    const out = route === '/' ? join(dist, 'index.html') : join(dist, route.slice(1), 'index.html');
+    const out = routeOutFile(dist, route);
     mkdirSync(dirname(out), { recursive: true });
     writeFileSync(out, html);
     console.log(`prerendered ${route} -> ${out}`);

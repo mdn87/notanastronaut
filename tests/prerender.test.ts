@@ -1,5 +1,6 @@
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { prerender } from '../scripts/prerender';
+import { prerender, routeOutFile } from '../scripts/prerender';
 import { NODES, SITE } from '../src/content/nodes';
 
 const TEMPLATE = `<!doctype html><html><head><title>X</title>
@@ -50,5 +51,22 @@ describe('prerender', () => {
 
   it('fails fast on invalid content', () => {
     expect(() => prerender(TEMPLATE, NODES.slice(0, 5), SITE)).toThrow(/expected 6 nodes/);
+  });
+});
+
+describe('routeOutFile', () => {
+  const dist = resolve('dist');
+
+  it('maps safe routes inside dist', () => {
+    expect(routeOutFile(dist, '/')).toBe(resolve(dist, 'index.html'));
+    expect(routeOutFile(dist, '/missions/agent-ops')).toBe(
+      resolve(dist, 'missions', 'agent-ops', 'index.html'),
+    );
+  });
+
+  it('rejects unsafe route paths', () => {
+    for (const route of ['/../escape', '/missions//bad', '/./bad', '/back\\slash']) {
+      expect(() => routeOutFile(dist, route)).toThrow();
+    }
   });
 });
