@@ -1,0 +1,26 @@
+#hud-root { position: fixed; inset: 0; pointer-events: none; z-index: 10; font-family: var(--font-mono); }
+.hud-brand {
+  position: absolute; top: 14px; left: 18px; pointer-events: auto;
+  font-family: var(--font-sans); color: var(--ink);
+}
+.hud-brand b { color: var(--sky-text); font-size: 1.2rem; }
+.hud-brand .joke { color: var(--accent-text); font-style: italic; font-size: 0.75rem; }
+.hud-nav { position: absolute; top: 16px; right: 18px; pointer-events: auto; font-size: 0.8rem; }
+.hud-nav a { color: var(--sky-text); text-decoration: none; margin-left: 0.9rem; }
+.hud-strip {
+  position: absolute; left: 14px; right: 14px; bottom: 12px; pointer-events: auto;
+  border: 1.5px solid var(--sky-line); border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 8px 14px; font-size: 0.8rem; color: var(--ink);
+  display: flex; justify-content: space-between; gap: 1rem;
+}
+.hud-strip .status { color: var(--sky-text); }
+.hud-panel {
+  position: absolute; right: 18px; top: 64px; width: min(360px, 80vw);
+  pointer-events: auto; border: 1.5px solid var(--sky-line); border-radius: 10px;
+  background: rgba(255, 255, 255, 0.94); padding: 14px 18px;
+  font-family: var(--font-sans);
+}
+.hud-panel h2 { color: var(--sky-text); margin: 0 0 0.25rem; font-size: 1.15rem; }
+.hud-panel .tagline { font-style: italic; color: var(--ink); margin-top: 0; }
+.hud-panel[hidden] { display: none; }
