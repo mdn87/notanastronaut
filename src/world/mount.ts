@@ -9,11 +9,21 @@ export async function mountWorld(opts: MountOpts): Promise<void> {
   canvas.id = 'scene';
   canvas.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;display:block;';
   canvas.setAttribute('aria-hidden', 'true');
-  document.body.prepend(canvas);
 
-  const scene = new WorldScene(canvas, opts.nodes, { idle: !opts.reducedMotion });
-  addEventListener('resize', () => scene.resize());
+  let scene: WorldScene | null = null;
+  let onResize: (() => void) | null = null;
+  try {
+    scene = new WorldScene(canvas, opts.nodes, { idle: !opts.reducedMotion });
+    onResize = () => scene?.resize();
+    document.body.prepend(canvas);
+    addEventListener('resize', onResize);
 
-  const { wireWorld } = await import('./wire');
-  wireWorld(scene, opts);
+    const { wireWorld } = await import('./wire');
+    wireWorld(scene, opts);
+  } catch (err) {
+    if (onResize) removeEventListener('resize', onResize);
+    scene?.dispose();
+    canvas.remove();
+    throw err;
+  }
 }
