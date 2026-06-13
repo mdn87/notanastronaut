@@ -7,14 +7,21 @@ export interface ParallaxField { mid: Body[]; far: Sprite[]; }
 export interface ParallaxOpts { midCount?: number; farCount?: number; }
 
 const Z_MIN = -30, Z_MAX = 176, X_MAX = 80, Y_MAX = 40, CORRIDOR = 12;
+const MAX_BODIES = 500;
+
+function count(value: number | undefined, fallback: number): number {
+  if (value === undefined) return fallback;
+  if (!Number.isFinite(value)) return fallback;
+  return Math.min(MAX_BODIES, Math.max(0, Math.floor(value)));
+}
 
 /** Deterministic background field around the flight corridor. */
 export function makeBodies(seed: number, opts: ParallaxOpts = {}): ParallaxField {
   const rnd = mulberry32(seed);
   const mid: Body[] = [];
   const far: Sprite[] = [];
-  const midCount = opts.midCount ?? 24;
-  const farCount = opts.farCount ?? 60;
+  const midCount = count(opts.midCount, 24);
+  const farCount = count(opts.farCount, 60);
 
   while (mid.length < midCount) {
     const pos = {
