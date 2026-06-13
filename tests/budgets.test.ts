@@ -1,6 +1,6 @@
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { afterEach, describe, expect, it } from 'vitest';
 
@@ -19,7 +19,7 @@ function makeDist() {
 
 function writeFile(root: string, name: string, text: string) {
   const path = join(root, name);
-  mkdirSync(join(path, '..'), { recursive: true });
+  mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, text);
 }
 
@@ -85,12 +85,14 @@ describe('budget checker', () => {
       <img srcset="/assets/hero.png?size=1 1x, assets/hero@2x.webp#large 2x">
       <source srcset="assets/hero.avif 1x">
       <link href="assets/fonts/site.woff2?v=2">
+      <link href="https://notanastronaut.com/assets/patch.png">
       <img src="/assets/inline.svg#icon">
     `)).toEqual(new Set([
       'assets/hero.png',
       'assets/hero@2x.webp',
       'assets/hero.avif',
       'assets/fonts/site.woff2',
+      'assets/patch.png',
       'assets/inline.svg',
     ]));
 

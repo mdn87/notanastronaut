@@ -67,10 +67,6 @@ export function normalizeAssetRef(ref, from = 'index.html') {
     return null;
   }
 
-  if (url.origin !== new URL(BASE_URL).origin && /^[a-z][a-z0-9+.-]*:/i.test(value)) {
-    return null;
-  }
-
   const normalized = stripRefNoise(url.pathname).replace(/^\/+/, '');
   return normalized.startsWith('assets/') ? normalized : null;
 }
