@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" role="img" aria-labelledby="title desc">
+  <title id="title">Draft 5 halftone signal symbol sheet</title>
+  <desc id="desc">Reusable planet glyphs, halftone dots, repeated curves, graduated lines, and triangles.</desc>
+  <defs>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="5" cy="5" r="2.4" fill="#4ab3d4" opacity=".42"/>
+      <circle cx="19" cy="19" r="1.4" fill="#4ab3d4" opacity=".28"/>
+    </pattern>
+    <symbol id="planet" viewBox="-140 -110 280 220">
+      <clipPath id="planetClip"><circle r="70"/></clipPath>
+      <circle r="70" fill="#fff8ea" stroke="#4ab3d4" stroke-width="9"/>
+      <g clip-path="url(#planetClip)">
+        <rect x="-70" y="0" width="140" height="70" fill="#4ab3d4"/>
+        <rect x="-70" y="-70" width="140" height="140" fill="url(#dots)" opacity=".3"/>
+      </g>
+      <rect x="-136" y="-12" width="272" height="24" fill="#4ab3d4" opacity=".74" transform="rotate(-10)"/>
+      <rect x="-86" y="-5" width="172" height="10" fill="#fff8ea" opacity=".97" transform="rotate(-10)"/>
+    </symbol>
+    <symbol id="curve-repeat" viewBox="0 0 300 140">
+      <path d="M-10 26C58-8 126-8 194 26s124 34 176-2" fill="none" stroke="#4ab3d4" stroke-width="11" stroke-linecap="round"/>
+      <path d="M-10 62C58 28 126 28 194 62s124 34 176-2" fill="none" stroke="#4ab3d4" stroke-width="8" stroke-linecap="round"/>
+      <path d="M-10 98C58 64 126 64 194 98s124 34 176-2" fill="none" stroke="#4ab3d4" stroke-width="5" stroke-linecap="round"/>
+      <path d="M-10 130C58 96 126 96 194 130s124 34 176-2" fill="none" stroke="#4ab3d4" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 18"/>
+    </symbol>
+    <symbol id="triangle-set" viewBox="0 0 260 160">
+      <polygon points="58,20 116,120 0,120" fill="#fff8ea" stroke="#4ab3d4" stroke-width="7"/>
+      <polygon points="154,48 204,134 104,134" fill="#4ab3d4" opacity=".58"/>
+      <polygon points="226,8 260,68 192,68" fill="#fff8ea" stroke="#4ab3d4" stroke-width="5"/>
+    </symbol>
+  </defs>
+
+  <rect width="1200" height="420" fill="#ffffff"/>
+  <use href="#planet" x="112" y="182" width="280" height="220"/>
+  <use href="#curve-repeat" x="382" y="152" width="300" height="140"/>
+  <rect x="708" y="178" width="260" height="110" fill="url(#dots)" opacity=".8"/>
+  <use href="#triangle-set" x="900" y="142" width="260" height="160"/>
+</svg>

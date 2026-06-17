@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" role="img" aria-labelledby="title desc">
+  <title id="title">Draft 3 space alphabet symbol sheet</title>
+  <desc id="desc">Ultra-simple cyan and cream symbols reduced to planet, block cloud, arrow comet, and diamond star glyphs.</desc>
+  <defs>
+    <symbol id="planet-glyph" viewBox="-140 -110 280 220">
+      <clipPath id="planetClip"><circle r="70"/></clipPath>
+      <circle r="70" fill="#fff8ea" stroke="#4ab3d4" stroke-width="9"/>
+      <g clip-path="url(#planetClip)">
+        <rect x="-70" y="0" width="140" height="70" fill="#4ab3d4"/>
+      </g>
+      <rect x="-136" y="-12" width="272" height="24" fill="#4ab3d4" opacity=".72" transform="rotate(-10)"/>
+      <rect x="-86" y="-5" width="172" height="10" fill="#fff8ea" opacity=".96" transform="rotate(-10)"/>
+    </symbol>
+    <symbol id="cloud-glyph" viewBox="0 0 320 160">
+      <path fill="#fff8ea" stroke="#4ab3d4" stroke-width="9" d="M0 160V94h70V48h78V12h86v64h86v84z"/>
+      <path fill="#4ab3d4" opacity=".34" d="M0 160V94h148V76h172v84z"/>
+    </symbol>
+    <symbol id="comet-glyph" viewBox="0 0 320 140">
+      <path fill="#fff8ea" stroke="#4ab3d4" stroke-width="9" d="M0 70h188l-42-40h108l66 40-66 40H146l42-40z"/>
+      <path fill="#4ab3d4" opacity=".34" d="M0 70h188l-42 40h108l66-40z"/>
+    </symbol>
+    <symbol id="star-glyph" viewBox="-50 -50 100 100">
+      <rect x="-28" y="-28" width="56" height="56" transform="rotate(45)"/>
+    </symbol>
+  </defs>
+
+  <rect width="1200" height="420" fill="#ffffff"/>
+  <use href="#planet-glyph" x="170" y="190" width="280" height="220"/>
+  <use href="#cloud-glyph" x="390" y="160" width="320" height="160"/>
+  <use href="#comet-glyph" x="758" y="165" width="320" height="140"/>
+  <use href="#star-glyph" x="1060" y="102" width="100" height="100" fill="#fff8ea" stroke="#4ab3d4" stroke-width="6"/>
+  <use href="#star-glyph" x="1020" y="252" width="70" height="70" fill="#4ab3d4" opacity=".65"/>
+</svg>

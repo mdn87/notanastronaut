@@ -62,6 +62,7 @@ export function wireWorld(scene: WorldScene, opts: MountOpts): WorldCleanup {
   hud.setAtNode(startIndex);
 
   const unlistenArrive = travel.onArrive((index) => {
+    if (index < 0) { hud.setOverview(); return; } // arrived at the galaxy overview
     hud.setAtNode(index);
     const route = nodes[index]?.route;
     const nextUrl = route ? `${route}${location.search}` : null;
@@ -118,6 +119,7 @@ export function wireWorld(scene: WorldScene, opts: MountOpts): WorldCleanup {
     last = now;
     travel.tick(dt);
     scene.frame(dt, travel.state);
+    hud.setLabels(scene.labels());
     frameId = requestAnimationFrame(loop);
   };
   frameId = requestAnimationFrame(loop);

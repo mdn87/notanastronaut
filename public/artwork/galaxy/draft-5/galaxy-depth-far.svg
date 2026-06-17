@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" role="img" aria-labelledby="title desc">
+  <title id="title">Draft 5 far halftone plaid field</title>
+  <desc id="desc">Translucent plaid watercolor slabs with dense halftone dot fields and faint graduated line stacks.</desc>
+  <defs>
+    <filter id="wash" x="-12%" y="-18%" width="124%" height="136%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.007 0.015" numOctaves="2" seed="205" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="18"/>
+      <feGaussianBlur stdDeviation="22"/>
+    </filter>
+    <pattern id="tinyDots" width="34" height="34" patternUnits="userSpaceOnUse">
+      <circle cx="6" cy="6" r="2.1" fill="#4ab3d4" opacity=".24"/>
+      <circle cx="23" cy="22" r="1.2" fill="#4ab3d4" opacity=".18"/>
+    </pattern>
+    <pattern id="creamDots" width="54" height="54" patternUnits="userSpaceOnUse">
+      <circle cx="10" cy="12" r="3.4" fill="#fff8ea" opacity=".62"/>
+      <circle cx="38" cy="36" r="2.2" fill="#fff8ea" opacity=".44"/>
+    </pattern>
+  </defs>
+
+  <g filter="url(#wash)" opacity=".76">
+    <rect x="-90" y="184" width="2060" height="150" fill="#8f3eb5" opacity=".3"/>
+    <rect x="-60" y="392" width="2020" height="128" fill="#2f80c1" opacity=".26"/>
+    <rect x="-80" y="620" width="2040" height="134" fill="#39c7e2" opacity=".22"/>
+    <rect x="270" y="112" width="128" height="840" fill="#5d52a3" opacity=".22"/>
+    <rect x="760" y="78" width="156" height="886" fill="#ec4e9b" opacity=".2"/>
+    <rect x="1268" y="120" width="190" height="846" fill="#3550a3" opacity=".22"/>
+    <rect x="1510" y="240" width="420" height="96" fill="#ec4e9b" opacity=".18"/>
+  </g>
+
+  <rect width="1920" height="1080" fill="url(#tinyDots)" opacity=".95"/>
+  <rect x="80" y="214" width="1740" height="620" fill="url(#creamDots)" opacity=".36"/>
+
+  <g fill="none" stroke-linecap="round">
+    <path d="M-90 278C180 210 374 214 594 290s418 80 666-12 470-92 750 36" stroke="#ffffff" stroke-width="7" opacity=".3"/>
+    <path d="M-90 316C180 248 374 252 594 328s418 80 666-12 470-92 750 36" stroke="#ffffff" stroke-width="5" opacity=".28"/>
+    <path d="M-90 354C180 286 374 290 594 366s418 80 666-12 470-92 750 36" stroke="#ffffff" stroke-width="3" opacity=".24" stroke-dasharray="1 22"/>
+
+    <path d="M-90 696C180 612 372 616 594 706s418 96 662-10 468-108 754 42" stroke="#4ab3d4" stroke-width="6" opacity=".22"/>
+    <path d="M-90 740C180 656 372 660 594 750s418 96 662-10 468-108 754 42" stroke="#4ab3d4" stroke-width="3" opacity=".22" stroke-dasharray="1 24"/>
+  </g>
+</svg>

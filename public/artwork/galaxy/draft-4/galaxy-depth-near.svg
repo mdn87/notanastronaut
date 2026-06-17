@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Draft 4 near abstract cyan cream marks</title>
+  <desc id="desc">Foreground abstract cyan and cream marks made from curves, dotted lines, plaid bars, and triangles.</desc>
+  <defs>
+    <pattern id="nearDots" width="76" height="76" patternUnits="userSpaceOnUse">
+      <circle cx="12" cy="14" r="4" fill="#4ab3d4" opacity=".48"/>
+      <circle cx="48" cy="52" r="2" fill="#4ab3d4" opacity=".32"/>
+    </pattern>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#nearDots)" opacity=".42"/>
+
+  <g fill="none" stroke="#4ab3d4" stroke-linecap="round" opacity=".84">
+    <path d="M-80 238C130 286 302 272 438 196S726 108 934 182" stroke-width="7"/>
+    <path d="M-70 286C140 334 312 320 448 244S736 156 944 230" stroke-width="4"/>
+    <path d="M-60 334C150 382 322 368 458 292S746 204 954 278" stroke-width="3" stroke-dasharray="2 20"/>
+
+    <path d="M1002 920C1180 796 1354 762 1524 818s300 36 456-60" stroke-width="8"/>
+    <path d="M1018 974C1196 850 1370 816 1540 872s300 36 456-60" stroke-width="4" stroke-dasharray="2 22"/>
+  </g>
+
+  <g fill="none" stroke="#fff8ea" stroke-linecap="square" opacity=".88">
+    <path d="M94 654H420L520 596H740" stroke-width="18"/>
+    <path d="M96 700H420L520 642H740" stroke-width="6"/>
+    <path d="M1226 166H1490L1588 112H1788" stroke-width="16"/>
+    <path d="M1226 208H1490L1588 154H1788" stroke-width="5"/>
+  </g>
+
+  <g opacity=".9">
+    <polygon points="222,760 286,870 158,870" fill="#fff8ea" stroke="#4ab3d4" stroke-width="7"/>
+    <polygon points="348,796 402,890 294,890" fill="#4ab3d4" opacity=".58"/>
+    <polygon points="1532,216 1594,324 1470,324" fill="#fff8ea" stroke="#4ab3d4" stroke-width="7"/>
+    <polygon points="1664,250 1716,340 1612,340" fill="#4ab3d4" opacity=".56"/>
+    <polygon points="1390,810 1446,906 1334,906" fill="#fff8ea" stroke="#4ab3d4" stroke-width="7"/>
+  </g>
+
+  <g fill="#4ab3d4" opacity=".6">
+    <rect x="84" y="404" width="42" height="42" transform="rotate(45 105 425)"/>
+    <rect x="770" y="932" width="34" height="34" transform="rotate(45 787 949)"/>
+    <rect x="1738" y="540" width="48" height="48" transform="rotate(45 1762 564)"/>
+    <rect x="1038" y="286" width="26" height="26" transform="rotate(45 1051 299)"/>
+  </g>
+</svg>

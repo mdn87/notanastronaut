@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Draft 3 mid ultra-simple planet glyphs</title>
+  <desc id="desc">Space-object glyphs reduced to circles, rectangles, bars, diamonds, and color-block fields.</desc>
+  <defs>
+    <filter id="field-soften" x="-16%" y="-20%" width="132%" height="140%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.01 0.018" numOctaves="2" seed="113" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="12"/>
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+    <clipPath id="p0"><circle cx="960" cy="540" r="220"/></clipPath>
+    <clipPath id="p1"><circle cx="408" cy="354" r="82"/></clipPath>
+    <clipPath id="p2"><circle cx="1506" cy="690" r="90"/></clipPath>
+  </defs>
+
+  <g filter="url(#field-soften)" opacity=".33">
+    <rect x="162" y="250" width="500" height="132" fill="#8f3eb5"/>
+    <rect x="478" y="410" width="480" height="128" fill="#2f80c1"/>
+    <rect x="868" y="286" width="540" height="142" fill="#ec4e9b"/>
+    <rect x="1120" y="542" width="590" height="144" fill="#3550a3"/>
+    <rect x="486" y="708" width="430" height="118" fill="#39c7e2"/>
+  </g>
+
+  <g opacity=".9">
+    <circle cx="960" cy="540" r="220" fill="#fff8ea"/>
+    <g clip-path="url(#p0)">
+      <rect x="740" y="540" width="440" height="220" fill="#4ab3d4"/>
+      <rect x="740" y="430" width="440" height="54" fill="#4ab3d4" opacity=".38"/>
+      <rect x="938" y="320" width="44" height="440" fill="#4ab3d4" opacity=".18"/>
+    </g>
+    <rect x="606" y="516" width="708" height="48" fill="#4ab3d4" opacity=".72" transform="rotate(-10 960 540)"/>
+    <rect x="704" y="530" width="512" height="20" fill="#fff8ea" opacity=".95" transform="rotate(-10 960 540)"/>
+  </g>
+
+  <g opacity=".86">
+    <circle cx="408" cy="354" r="82" fill="#fff8ea"/>
+    <g clip-path="url(#p1)">
+      <rect x="326" y="354" width="164" height="82" fill="#4ab3d4"/>
+    </g>
+    <rect x="286" y="343" width="244" height="22" fill="#4ab3d4" opacity=".7" transform="rotate(8 408 354)"/>
+    <rect x="338" y="348" width="140" height="10" fill="#fff8ea" opacity=".95" transform="rotate(8 408 354)"/>
+  </g>
+
+  <g opacity=".86">
+    <circle cx="1506" cy="690" r="90" fill="#fff8ea"/>
+    <g clip-path="url(#p2)">
+      <rect x="1416" y="690" width="180" height="90" fill="#4ab3d4"/>
+    </g>
+    <rect x="1382" y="680" width="248" height="22" fill="#4ab3d4" opacity=".7" transform="rotate(-6 1506 690)"/>
+    <rect x="1434" y="685" width="144" height="10" fill="#fff8ea" opacity=".95" transform="rotate(-6 1506 690)"/>
+  </g>
+
+  <g fill="#fff8ea" stroke="#4ab3d4" stroke-width="4" opacity=".9">
+    <rect x="594" y="776" width="34" height="34" transform="rotate(45 611 793)"/>
+    <rect x="1250" y="264" width="28" height="28" transform="rotate(45 1264 278)"/>
+    <rect x="1740" y="514" width="42" height="42" transform="rotate(45 1761 535)"/>
+  </g>
+  <g fill="#4ab3d4" opacity=".45">
+    <rect x="662" y="286" width="14" height="14"/><rect x="802" y="672" width="12" height="12"/>
+    <rect x="1116" y="358" width="14" height="14"/><rect x="1322" y="836" width="16" height="16"/>
+    <rect x="1644" y="312" width="12" height="12"/><rect x="278" y="646" width="14" height="14"/>
+  </g>
+</svg>

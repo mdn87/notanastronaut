@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Galaxy Depth Artwork Draft 2 Preview</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --cyan: #4ab3d4;
+        --ink: #2f3e4a;
+      }
+      body {
+        margin: 0;
+        font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: #f7fbfd;
+      }
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 28px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        color: var(--cyan);
+        font-size: 28px;
+        letter-spacing: 0;
+      }
+      p {
+        margin: 0 0 24px;
+      }
+      .stage {
+        position: relative;
+        aspect-ratio: 16 / 9;
+        overflow: hidden;
+        border: 1px solid #d7e9f1;
+        background: white;
+      }
+      .stage img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .far { opacity: .86; }
+      .mid { opacity: .78; transform: scale(1.02); }
+      .near { opacity: .92; transform: scale(1.045); }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 18px;
+      }
+      figure {
+        margin: 0;
+        border: 1px solid #d7e9f1;
+        background: white;
+      }
+      figure img {
+        display: block;
+        width: 100%;
+      }
+      figcaption {
+        padding: 10px 12px;
+        border-top: 1px solid #d7e9f1;
+        font-size: 13px;
+      }
+      @media (max-width: 800px) {
+        main { padding: 18px; }
+        .grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Galaxy Depth Artwork Draft 2</h1>
+      <p>More exaggerated simplicity: blocky color fields, geometric planets, thick orbit bars, and cyan/cream foreground forms.</p>
+      <div class="stage" aria-label="Draft 2 composite layer preview">
+        <img class="far" src="./galaxy-depth-far.svg" alt="">
+        <img class="mid" src="./galaxy-depth-mid.svg" alt="">
+        <img class="near" src="./galaxy-depth-near.svg" alt="">
+      </div>
+      <div class="grid">
+        <figure>
+          <img src="./galaxy-depth-far.svg" alt="Draft 2 far abstract galaxy layer">
+          <figcaption>Draft 2 far abstract color blocks</figcaption>
+        </figure>
+        <figure>
+          <img src="./galaxy-depth-mid.svg" alt="Draft 2 mid geometric planet layer">
+          <figcaption>Draft 2 mid geometric planets</figcaption>
+        </figure>
+        <figure>
+          <img src="./galaxy-depth-near.svg" alt="Draft 2 near minimal foreground layer">
+          <figcaption>Draft 2 near minimal foreground</figcaption>
+        </figure>
+        <figure>
+          <img src="./galaxy-symbols.svg" alt="Draft 2 minimal symbol sheet">
+          <figcaption>Draft 2 reusable symbol sheet</figcaption>
+        </figure>
+      </div>
+    </main>
+  </body>
+</html>

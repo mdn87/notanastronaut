@@ -9,6 +9,7 @@ const hudMocks = vi.hoisted(() => {
     site: unknown;
     setAtNode: ReturnType<typeof vi.fn>;
     setTransit: ReturnType<typeof vi.fn>;
+    setLabels: ReturnType<typeof vi.fn>;
     dispose: ReturnType<typeof vi.fn>;
   }> = [];
 
@@ -19,6 +20,7 @@ const hudMocks = vi.hoisted(() => {
       site: unknown;
       setAtNode: ReturnType<typeof vi.fn>;
       setTransit: ReturnType<typeof vi.fn>;
+      setLabels: ReturnType<typeof vi.fn>;
       dispose: ReturnType<typeof vi.fn>;
     },
     root: unknown,
@@ -30,6 +32,7 @@ const hudMocks = vi.hoisted(() => {
     this.site = site;
     this.setAtNode = vi.fn();
     this.setTransit = vi.fn();
+    this.setLabels = vi.fn();
     this.dispose = vi.fn();
     instances.push(this);
   });
@@ -140,6 +143,7 @@ function makeScene(canvas: HTMLCanvasElement): WorldScene {
   return {
     frame: vi.fn(),
     pickNode: vi.fn(),
+    labels: vi.fn(() => []),
     renderer: { domElement: canvas },
   } as unknown as WorldScene;
 }

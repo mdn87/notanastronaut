@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" role="img" aria-labelledby="title desc">
+  <title id="title">Draft 5 near dense line and dot marks</title>
+  <desc id="desc">Foreground cyan and cream planet glyphs, halftone dots, graduated line stacks, dotted paths, and triangles.</desc>
+  <defs>
+    <pattern id="nearDots" width="32" height="32" patternUnits="userSpaceOnUse">
+      <circle cx="6" cy="7" r="2.4" fill="#4ab3d4" opacity=".42"/>
+      <circle cx="23" cy="22" r="1.4" fill="#4ab3d4" opacity=".28"/>
+    </pattern>
+    <clipPath id="small"><circle cx="248" cy="766" r="56"/></clipPath>
+    <clipPath id="top"><circle cx="1600" cy="218" r="66"/></clipPath>
+    <clipPath id="mid"><circle cx="1088" cy="840" r="48"/></clipPath>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#nearDots)" opacity=".62"/>
+
+  <g fill="none" stroke="#4ab3d4" stroke-linecap="round" opacity=".86">
+    <path d="M-80 214C122 278 298 268 438 188S722 92 944 174" stroke-width="10"/>
+    <path d="M-70 260C132 324 308 314 448 234S732 138 954 220" stroke-width="7"/>
+    <path d="M-60 306C142 370 318 360 458 280S742 184 964 266" stroke-width="4"/>
+    <path d="M-50 352C152 416 328 406 468 326S752 230 974 312" stroke-width="3" stroke-dasharray="1 20"/>
+
+    <path d="M982 900C1160 766 1342 734 1522 808s318 58 468-56" stroke-width="10"/>
+    <path d="M1000 950C1178 816 1360 784 1540 858s318 58 468-56" stroke-width="6" stroke-dasharray="1 24"/>
+    <path d="M1018 1000C1196 866 1378 834 1558 908s318 58 468-56" stroke-width="3" stroke-dasharray="1 26"/>
+  </g>
+
+  <g fill="none" stroke="#fff8ea" stroke-linecap="square" opacity=".9">
+    <path d="M78 638H414L514 580H760" stroke-width="20"/>
+    <path d="M78 684H414L514 626H760" stroke-width="10"/>
+    <path d="M78 730H414L514 672H760" stroke-width="4" stroke-dasharray="42 22"/>
+    <path d="M1198 150H1486L1582 98H1808" stroke-width="18"/>
+    <path d="M1198 194H1486L1582 142H1808" stroke-width="8"/>
+    <path d="M1198 238H1486L1582 186H1808" stroke-width="3" stroke-dasharray="36 20"/>
+  </g>
+
+  <g opacity=".92">
+    <circle cx="248" cy="766" r="56" fill="#fff8ea" stroke="#4ab3d4" stroke-width="8"/>
+    <g clip-path="url(#small)">
+      <rect x="192" y="766" width="112" height="56" fill="#4ab3d4"/>
+      <rect x="192" y="710" width="112" height="112" fill="url(#nearDots)" opacity=".35"/>
+    </g>
+    <rect x="110" y="754" width="276" height="24" fill="#4ab3d4" opacity=".74" transform="rotate(-8 248 766)"/>
+    <rect x="170" y="760" width="156" height="10" fill="#fff8ea" opacity=".97" transform="rotate(-8 248 766)"/>
+
+    <circle cx="1600" cy="218" r="66" fill="#fff8ea" stroke="#4ab3d4" stroke-width="8"/>
+    <g clip-path="url(#top)">
+      <rect x="1534" y="218" width="132" height="66" fill="#4ab3d4"/>
+      <rect x="1534" y="152" width="132" height="132" fill="url(#nearDots)" opacity=".32"/>
+    </g>
+    <rect x="1472" y="207" width="256" height="23" fill="#4ab3d4" opacity=".74" transform="rotate(12 1600 218)"/>
+    <rect x="1532" y="213" width="136" height="10" fill="#fff8ea" opacity=".97" transform="rotate(12 1600 218)"/>
+
+    <circle cx="1088" cy="840" r="48" fill="#fff8ea" stroke="#4ab3d4" stroke-width="7"/>
+    <g clip-path="url(#mid)">
+      <rect x="1040" y="840" width="96" height="48" fill="#4ab3d4"/>
+    </g>
+    <rect x="1000" y="832" width="176" height="18" fill="#4ab3d4" opacity=".72" transform="rotate(7 1088 840)"/>
+  </g>
+
+  <g opacity=".88">
+    <polygon points="222,380 286,490 158,490" fill="#fff8ea" stroke="#4ab3d4" stroke-width="7"/>
+    <polygon points="404,416 458,510 350,510" fill="#4ab3d4" opacity=".58"/>
+    <polygon points="1350,720 1414,830 1286,830" fill="#fff8ea" stroke="#4ab3d4" stroke-width="7"/>
+    <polygon points="1490,764 1542,854 1438,854" fill="#4ab3d4" opacity=".56"/>
+  </g>
+</svg>

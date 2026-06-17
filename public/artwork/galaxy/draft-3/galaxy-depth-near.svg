@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Draft 3 near space alphabet layer</title>
+  <desc id="desc">Foreground reduced to planet glyphs, diamond stars, straight-line paths, and arrow-like comet symbols.</desc>
+  <defs>
+    <clipPath id="small"><circle cx="248" cy="766" r="56"/></clipPath>
+    <clipPath id="top"><circle cx="1600" cy="218" r="66"/></clipPath>
+  </defs>
+
+  <g opacity=".9">
+    <circle cx="248" cy="766" r="56" fill="#fff8ea" stroke="#4ab3d4" stroke-width="8"/>
+    <g clip-path="url(#small)">
+      <rect x="192" y="766" width="112" height="56" fill="#4ab3d4"/>
+    </g>
+    <rect x="110" y="754" width="276" height="24" fill="#4ab3d4" opacity=".72" transform="rotate(-8 248 766)"/>
+    <rect x="170" y="760" width="156" height="10" fill="#fff8ea" opacity=".96" transform="rotate(-8 248 766)"/>
+
+    <circle cx="1600" cy="218" r="66" fill="#fff8ea" stroke="#4ab3d4" stroke-width="8"/>
+    <g clip-path="url(#top)">
+      <rect x="1534" y="218" width="132" height="66" fill="#4ab3d4"/>
+    </g>
+    <rect x="1472" y="207" width="256" height="23" fill="#4ab3d4" opacity=".72" transform="rotate(12 1600 218)"/>
+    <rect x="1532" y="213" width="136" height="10" fill="#fff8ea" opacity=".96" transform="rotate(12 1600 218)"/>
+  </g>
+
+  <g fill="#fff8ea" stroke="#4ab3d4" stroke-width="8" opacity=".86">
+    <path d="M1336 862h220l-58 42 78 42h-220l58-42z"/>
+    <path d="M418 144h202l-54 36 70 36H434l54-36z"/>
+  </g>
+
+  <g fill="none" stroke="#4ab3d4" stroke-linecap="square" opacity=".52">
+    <path d="M-30 240h276l160-72h354" stroke-width="7"/>
+    <path d="M1018 980h330l156-92h386" stroke-width="7"/>
+    <path d="M1216 86h210l120-54" stroke="#fff8ea" stroke-width="12"/>
+  </g>
+
+  <g fill="#fff8ea" stroke="#4ab3d4" stroke-width="5">
+    <rect x="82" y="400" width="44" height="44" transform="rotate(45 104 422)"/>
+    <rect x="760" y="934" width="34" height="34" transform="rotate(45 777 951)"/>
+    <rect x="1738" y="540" width="48" height="48" transform="rotate(45 1762 564)"/>
+  </g>
+  <g fill="#4ab3d4" opacity=".5">
+    <rect x="242" y="274" width="12" height="12"/><rect x="578" y="244" width="16" height="16"/>
+    <rect x="1068" y="178" width="14" height="14"/><rect x="1264" y="308" width="10" height="10"/>
+    <rect x="1810" y="252" width="14" height="14"/><rect x="1656" y="740" width="10" height="10"/>
+    <rect x="1122" y="894" width="16" height="16"/><rect x="510" y="838" width="10" height="10"/>
+  </g>
+</svg>

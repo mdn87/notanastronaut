@@ -2,9 +2,13 @@ import type { TravelState } from './types';
 
 export interface TravelOpts { transitDuration?: number } // seconds
 
+/** The zoomed-back "star map" sits one step before node 0. */
+export const OVERVIEW_INDEX = -1;
+
 /**
  * Deterministic node-snap travel. Two states, three verbs.
- * No wall-clock: time only enters through tick(dt).
+ * Positions run from OVERVIEW_INDEX (-1, the galaxy overview) up to the last
+ * node. No wall-clock: time only enters through tick(dt).
  */
 export class TravelMachine {
   state: TravelState = { kind: 'atNode', index: 0 };
@@ -34,6 +38,7 @@ export class TravelMachine {
 
   jumpTo(index: number): boolean {
     if (this.state.kind !== 'atNode') return false;
+    if (index < 0) return false; // the overview is reachable only by stepping back
     if (index === this.state.index) return false;
     return this.startTransit(index);
   }
@@ -51,7 +56,7 @@ export class TravelMachine {
   }
 
   private startTransit(to: number): boolean {
-    if (!Number.isInteger(to) || to < 0 || to >= this.nodeCount) return false;
+    if (!Number.isInteger(to) || to < OVERVIEW_INDEX || to >= this.nodeCount) return false;
     const from = (this.state as { index: number }).index;
     this.state = { kind: 'inTransit', from, to, t: 0 };
     return true;

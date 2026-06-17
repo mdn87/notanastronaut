@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" role="img" aria-labelledby="title desc">
+  <title id="title">Draft 4 abstract signal symbol sheet</title>
+  <desc id="desc">Reusable abstract marks: repeated curves, dotted lines, plaid bars, triangles, and diamonds.</desc>
+  <defs>
+    <symbol id="curve-stack" viewBox="0 0 300 140">
+      <path d="M-10 40C58 6 126 6 194 40s124 34 176-2" fill="none" stroke="#4ab3d4" stroke-width="10" stroke-linecap="round"/>
+      <path d="M-10 78C58 44 126 44 194 78s124 34 176-2" fill="none" stroke="#4ab3d4" stroke-width="5" stroke-linecap="round"/>
+      <path d="M-10 116C58 82 126 82 194 116s124 34 176-2" fill="none" stroke="#4ab3d4" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 18"/>
+    </symbol>
+    <symbol id="plaid-bar" viewBox="0 0 320 160">
+      <rect x="0" y="54" width="320" height="34" fill="#fff8ea" stroke="#4ab3d4" stroke-width="7"/>
+      <rect x="78" y="0" width="34" height="160" fill="#4ab3d4" opacity=".42"/>
+      <rect x="202" y="0" width="24" height="160" fill="#4ab3d4" opacity=".28"/>
+      <path d="M0 104H320" stroke="#4ab3d4" stroke-width="5" opacity=".52"/>
+    </symbol>
+    <symbol id="triangle-field" viewBox="0 0 320 160">
+      <polygon points="64,18 120,118 8,118" fill="#fff8ea" stroke="#4ab3d4" stroke-width="7"/>
+      <polygon points="176,42 226,128 126,128" fill="#4ab3d4" opacity=".58"/>
+      <polygon points="270,8 316,88 224,88" fill="#fff8ea" stroke="#4ab3d4" stroke-width="6"/>
+    </symbol>
+    <symbol id="dot-line" viewBox="0 0 300 140">
+      <path d="M0 70H300" stroke="#4ab3d4" stroke-width="8" stroke-linecap="round" stroke-dasharray="1 26"/>
+      <path d="M0 100H300" stroke="#fff8ea" stroke-width="12" stroke-linecap="round" stroke-dasharray="1 32"/>
+    </symbol>
+  </defs>
+
+  <rect width="1200" height="420" fill="#ffffff"/>
+  <use href="#curve-stack" x="60" y="150" width="300" height="140"/>
+  <use href="#plaid-bar" x="350" y="135" width="320" height="160"/>
+  <use href="#triangle-field" x="690" y="135" width="320" height="160"/>
+  <use href="#dot-line" x="930" y="150" width="300" height="140"/>
+</svg>

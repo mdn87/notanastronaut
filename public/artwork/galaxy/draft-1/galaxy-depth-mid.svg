@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Mid galaxy layer with simple two-tone planets</title>
+  <desc id="desc">Watercolor galaxy clouds behind simple cyan and cream geometric planet forms.</desc>
+  <defs>
+    <filter id="soft-cloud" x="-25%" y="-35%" width="150%" height="170%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.014 0.025" numOctaves="3" seed="31" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="24"/>
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+    <clipPath id="mainPlanet">
+      <circle cx="956" cy="539" r="218"/>
+    </clipPath>
+    <clipPath id="leftPlanet">
+      <circle cx="404" cy="343" r="92"/>
+    </clipPath>
+    <clipPath id="rightPlanet">
+      <circle cx="1516" cy="684" r="112"/>
+    </clipPath>
+  </defs>
+
+  <g opacity=".48" filter="url(#soft-cloud)">
+    <path fill="#8e44ad" d="M184 235c112-89 231-85 356 13 78 61 158 58 240-9 119-98 253-103 401-15 113 67 226 59 340-23 102-74 205-79 309-15v260c-135-6-247 26-335 98-113 92-239 106-379 41-110-52-221-43-333 27-134 84-251 72-351-36-74-81-159-96-254-45z"/>
+    <path fill="#2f80c1" d="M245 702c143-105 281-122 413-50 103 56 207 41 312-46 131-109 276-120 434-34 112 61 224 54 338-22 78-53 144-62 198-29v300c-167 53-323 45-467-24-134-64-260-49-377 46-145 117-294 126-447 26-120-78-260-74-419 14z"/>
+    <path fill="#ec4e9b" d="M-36 487c121-43 231-40 331 10 104 52 203 34 297-55 105-99 238-127 398-83 139 39 264 8 375-91 95-85 204-108 329-69v286c-118 51-227 48-326-7-121-68-234-54-337 41-116 106-255 128-417 66-146-56-266-45-361 32-86 69-182 85-289 47z"/>
+  </g>
+
+  <g opacity=".82">
+    <path fill="#4ab3d4" opacity=".5" d="M214 353c0-47 38-85 85-85 18 0 35 6 49 16 21-38 61-62 107-62 68 0 123 55 123 123 0 2 0 5-1 8 44 3 79 40 79 85 0 47-38 85-85 85H300c-47 0-86-38-86-85z"/>
+    <path fill="#fff8ea" opacity=".48" d="M247 361c32 20 70 27 114 20 67-11 118-39 153-84 24 22 39 53 39 88 0 2 0 5-1 8 44 3 79 40 79 85 0 8-1 15-3 22H300c-47 0-86-38-86-85 0-21 8-40 33-54z"/>
+    <path fill="#4ab3d4" opacity=".45" d="M1265 773c0-51 41-92 92-92 19 0 37 6 52 16 25-30 63-49 106-49 73 0 132 59 132 132v5c55 1 100 46 100 101 0 56-45 101-101 101h-279c-56 0-102-45-102-101z"/>
+    <path fill="#fff8ea" opacity=".46" d="M1294 774c40 24 89 31 146 21 79-14 139-47 180-100 17 23 27 52 27 85v5c55 1 100 46 100 101 0 13-2 25-7 36h-373c-56 0-102-45-102-101 0-16 4-32 29-47z"/>
+  </g>
+
+  <g>
+    <circle cx="956" cy="539" r="218" fill="#fff8ea"/>
+    <g clip-path="url(#mainPlanet)">
+      <path fill="#4ab3d4" d="M699 574c88-56 168-64 240-24 74 42 154 37 239-14 73-44 142-52 207-23v296H699z"/>
+      <path fill="#4ab3d4" opacity=".55" d="M743 365c99-45 193-48 282-9 69 30 136 27 202-9v118c-77 31-151 28-222-9-83-43-170-36-262 22z"/>
+    </g>
+    <ellipse cx="956" cy="539" rx="326" ry="54" fill="none" stroke="#4ab3d4" stroke-width="28" opacity=".74" transform="rotate(-18 956 539)"/>
+    <ellipse cx="956" cy="539" rx="285" ry="40" fill="none" stroke="#fff8ea" stroke-width="18" opacity=".92" transform="rotate(-18 956 539)"/>
+  </g>
+
+  <g opacity=".9">
+    <circle cx="404" cy="343" r="92" fill="#fff8ea"/>
+    <g clip-path="url(#leftPlanet)">
+      <path fill="#4ab3d4" d="M293 360c43-27 84-32 123-15 37 17 73 12 109-13v116H293z"/>
+    </g>
+    <ellipse cx="404" cy="343" rx="138" ry="24" fill="none" stroke="#4ab3d4" stroke-width="15" opacity=".68" transform="rotate(14 404 343)"/>
+
+    <circle cx="1516" cy="684" r="112" fill="#fff8ea"/>
+    <g clip-path="url(#rightPlanet)">
+      <path fill="#4ab3d4" d="M1384 709c48-33 98-39 149-18 49 20 95 14 139-18v142h-288z"/>
+    </g>
+    <ellipse cx="1516" cy="684" rx="168" ry="31" fill="none" stroke="#4ab3d4" stroke-width="17" opacity=".66" transform="rotate(-12 1516 684)"/>
+  </g>
+
+  <g fill="#fff8ea" opacity=".92">
+    <circle cx="827" cy="292" r="7"/><circle cx="902" cy="344" r="5"/><circle cx="1014" cy="318" r="6"/>
+    <circle cx="1103" cy="396" r="5"/><circle cx="777" cy="614" r="7"/><circle cx="1139" cy="682" r="4"/>
+    <circle cx="516" cy="587" r="6"/><circle cx="1408" cy="444" r="8"/><circle cx="1549" cy="572" r="5"/>
+  </g>
+  <g fill="#fff8ea" opacity=".95">
+    <path d="M686 761l18 44 44 18-44 18-18 44-18-44-44-18 44-18z"/>
+    <path d="M1190 242l13 32 32 13-32 13-13 32-13-32-32-13 32-13z"/>
+  </g>
+</svg>

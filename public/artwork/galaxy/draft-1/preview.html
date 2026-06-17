@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Galaxy Depth Artwork Preview</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --cyan: #4ab3d4;
+        --cream: #fff8ea;
+        --ink: #2f3e4a;
+      }
+      body {
+        margin: 0;
+        font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: #f7fbfd;
+      }
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 28px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        color: var(--cyan);
+        font-size: 28px;
+        letter-spacing: 0;
+      }
+      p {
+        margin: 0 0 24px;
+      }
+      .stage {
+        position: relative;
+        aspect-ratio: 16 / 9;
+        overflow: hidden;
+        border: 1px solid #d7e9f1;
+        background: white;
+      }
+      .stage img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .far {
+        opacity: .82;
+      }
+      .mid {
+        opacity: .72;
+        transform: scale(1.025);
+      }
+      .near {
+        opacity: .9;
+        transform: scale(1.05);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 18px;
+      }
+      figure {
+        margin: 0;
+        border: 1px solid #d7e9f1;
+        background: white;
+      }
+      figure img {
+        display: block;
+        width: 100%;
+      }
+      figcaption {
+        padding: 10px 12px;
+        border-top: 1px solid #d7e9f1;
+        font-size: 13px;
+      }
+      @media (max-width: 800px) {
+        main { padding: 18px; }
+        .grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Galaxy Depth Artwork Preview</h1>
+      <p>Layer stack preview for later implementation. The background uses watercolor-style violet, blue, magenta, and teal; foreground motifs stay cyan and cream.</p>
+      <div class="stage" aria-label="Composite layer preview">
+        <img class="far" src="./galaxy-depth-far.svg" alt="">
+        <img class="mid" src="./galaxy-depth-mid.svg" alt="">
+        <img class="near" src="./galaxy-depth-near.svg" alt="">
+      </div>
+      <div class="grid">
+        <figure>
+          <img src="./galaxy-depth-far.svg" alt="Far watercolor galaxy layer">
+          <figcaption>Far watercolor depth layer</figcaption>
+        </figure>
+        <figure>
+          <img src="./galaxy-depth-mid.svg" alt="Mid illustrated galaxy cluster layer">
+          <figcaption>Mid illustrated cluster layer</figcaption>
+        </figure>
+        <figure>
+          <img src="./galaxy-depth-near.svg" alt="Near cyan and cream foreground layer">
+          <figcaption>Near cyan and cream foreground layer</figcaption>
+        </figure>
+        <figure>
+          <img src="./galaxy-symbols.svg" alt="Reusable galaxy symbol sheet">
+          <figcaption>Reusable symbol sheet</figcaption>
+        </figure>
+      </div>
+    </main>
+  </body>
+</html>

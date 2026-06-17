@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Draft 2 mid geometric planet layer</title>
+  <desc id="desc">Over-simplified geometric cyan and cream planets over abstract watercolor color blocks.</desc>
+  <defs>
+    <filter id="soft-field" x="-20%" y="-25%" width="140%" height="150%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="2" seed="72" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="18"/>
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+    <clipPath id="heroPlanet">
+      <circle cx="960" cy="544" r="222"/>
+    </clipPath>
+    <clipPath id="miniA">
+      <circle cx="400" cy="360" r="88"/>
+    </clipPath>
+    <clipPath id="miniB">
+      <circle cx="1492" cy="694" r="96"/>
+    </clipPath>
+  </defs>
+
+  <g filter="url(#soft-field)" opacity=".38">
+    <rect x="116" y="238" width="612" height="174" rx="56" fill="#8f3eb5"/>
+    <rect x="520" y="412" width="548" height="180" rx="52" fill="#2f80c1"/>
+    <rect x="886" y="276" width="660" height="206" rx="64" fill="#ec4e9b"/>
+    <rect x="1090" y="542" width="670" height="198" rx="70" fill="#3550a3"/>
+    <rect x="432" y="702" width="520" height="156" rx="48" fill="#39c7e2"/>
+  </g>
+
+  <g opacity=".88">
+    <circle cx="960" cy="544" r="222" fill="#fff8ea"/>
+    <g clip-path="url(#heroPlanet)">
+      <rect x="738" y="544" width="444" height="222" fill="#4ab3d4"/>
+      <rect x="738" y="390" width="444" height="74" fill="#4ab3d4" opacity=".42"/>
+      <rect x="900" y="322" width="92" height="444" fill="#4ab3d4" opacity=".2"/>
+    </g>
+    <ellipse cx="960" cy="544" rx="350" ry="48" fill="none" stroke="#4ab3d4" stroke-width="30" transform="rotate(-14 960 544)"/>
+    <ellipse cx="960" cy="544" rx="286" ry="30" fill="none" stroke="#fff8ea" stroke-width="18" transform="rotate(-14 960 544)"/>
+  </g>
+
+  <g opacity=".82">
+    <circle cx="400" cy="360" r="88" fill="#fff8ea"/>
+    <g clip-path="url(#miniA)">
+      <rect x="312" y="360" width="176" height="88" fill="#4ab3d4"/>
+      <rect x="312" y="312" width="176" height="32" fill="#4ab3d4" opacity=".36"/>
+    </g>
+    <rect x="278" y="346" width="244" height="26" rx="13" fill="#4ab3d4" opacity=".68" transform="rotate(10 400 360)"/>
+    <rect x="318" y="352" width="164" height="14" rx="7" fill="#fff8ea" opacity=".92" transform="rotate(10 400 360)"/>
+  </g>
+
+  <g opacity=".82">
+    <circle cx="1492" cy="694" r="96" fill="#fff8ea"/>
+    <g clip-path="url(#miniB)">
+      <rect x="1396" y="694" width="192" height="96" fill="#4ab3d4"/>
+      <rect x="1396" y="634" width="192" height="38" fill="#4ab3d4" opacity=".36"/>
+    </g>
+    <rect x="1364" y="680" width="256" height="28" rx="14" fill="#4ab3d4" opacity=".68" transform="rotate(-8 1492 694)"/>
+    <rect x="1406" y="687" width="172" height="15" rx="8" fill="#fff8ea" opacity=".92" transform="rotate(-8 1492 694)"/>
+  </g>
+
+  <g fill="#fff8ea" opacity=".95">
+    <rect x="598" y="770" width="32" height="32" transform="rotate(45 614 786)"/>
+    <rect x="1246" y="264" width="28" height="28" transform="rotate(45 1260 278)"/>
+    <rect x="1740" y="514" width="42" height="42" transform="rotate(45 1761 535)"/>
+  </g>
+  <g fill="#4ab3d4" opacity=".5">
+    <circle cx="666" cy="290" r="9"/><circle cx="804" cy="676" r="7"/><circle cx="1118" cy="362" r="8"/>
+    <circle cx="1328" cy="842" r="10"/><circle cx="1648" cy="316" r="7"/><circle cx="282" cy="650" r="8"/>
+  </g>
+</svg>

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Draft 4 mid abstract line field</title>
+  <desc id="desc">A nonrepresentational field of repeated curves, dotted lines, plaid bands, and cyan cream triangle shards.</desc>
+  <defs>
+    <filter id="field-wash" x="-12%" y="-18%" width="124%" height="136%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.009 0.017" numOctaves="2" seed="188" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="12"/>
+      <feGaussianBlur stdDeviation="12"/>
+    </filter>
+    <marker id="dot" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5">
+      <circle cx="5" cy="5" r="3" fill="#4ab3d4" opacity=".7"/>
+    </marker>
+  </defs>
+
+  <g filter="url(#field-wash)" opacity=".42">
+    <rect x="110" y="224" width="650" height="94" fill="#8f3eb5"/>
+    <rect x="230" y="364" width="1030" height="86" fill="#2f80c1"/>
+    <rect x="664" y="514" width="1000" height="92" fill="#ec4e9b"/>
+    <rect x="410" y="700" width="860" height="82" fill="#39c7e2"/>
+    <rect x="508" y="160" width="72" height="750" fill="#5d52a3"/>
+    <rect x="988" y="132" width="62" height="820" fill="#3550a3"/>
+    <rect x="1442" y="188" width="88" height="700" fill="#8f3eb5"/>
+  </g>
+
+  <g fill="none" stroke="#4ab3d4" stroke-linecap="round">
+    <path d="M-60 262C210 170 404 174 624 274S1042 388 1290 252s460-116 698 38" stroke-width="9" opacity=".54"/>
+    <path d="M-40 330C230 238 424 242 644 342s418 114 666-22 460-116 698 38" stroke-width="4" opacity=".44"/>
+    <path d="M-30 398C240 306 434 310 654 410s418 114 666-22 460-116 698 38" stroke-width="4" opacity=".36"/>
+
+    <path d="M-80 598C220 516 398 520 598 610s382 96 608-16 438-112 774 30" stroke-width="8" opacity=".5" stroke-dasharray="2 26"/>
+    <path d="M-70 666C230 584 408 588 608 678s382 96 608-16 438-112 774 30" stroke-width="5" opacity=".42" stroke-dasharray="2 28"/>
+    <path d="M-60 734C240 652 418 656 618 746s382 96 608-16 438-112 774 30" stroke-width="3" opacity=".38" stroke-dasharray="2 30"/>
+  </g>
+
+  <g fill="none" stroke="#fff8ea" stroke-linecap="square" opacity=".84">
+    <path d="M218 500H668L802 430H1110L1240 500H1726" stroke-width="16"/>
+    <path d="M198 540H650L786 472H1122L1260 540H1752" stroke-width="5"/>
+    <path d="M308 820H744L860 760H1130L1258 820H1608" stroke-width="8" stroke-dasharray="42 24"/>
+  </g>
+
+  <g opacity=".85">
+    <polygon points="314,198 378,312 250,312" fill="#fff8ea" stroke="#4ab3d4" stroke-width="6"/>
+    <polygon points="846,246 912,358 780,358" fill="#4ab3d4" opacity=".58"/>
+    <polygon points="1412,290 1490,424 1334,424" fill="#fff8ea" stroke="#4ab3d4" stroke-width="7"/>
+    <polygon points="526,846 590,956 462,956" fill="#4ab3d4" opacity=".52"/>
+    <polygon points="1214,812 1276,920 1152,920" fill="#fff8ea" stroke="#4ab3d4" stroke-width="6"/>
+    <polygon points="1646,760 1708,868 1584,868" fill="#4ab3d4" opacity=".5"/>
+  </g>
+
+  <g fill="#4ab3d4" opacity=".45">
+    <rect x="708" y="216" width="16" height="16" transform="rotate(45 716 224)"/>
+    <rect x="1128" y="322" width="12" height="12" transform="rotate(45 1134 328)"/>
+    <rect x="1520" y="570" width="18" height="18" transform="rotate(45 1529 579)"/>
+    <rect x="874" y="868" width="12" height="12" transform="rotate(45 880 874)"/>
+  </g>
+</svg>

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" role="img" aria-labelledby="title desc">
+  <title id="title">Far galaxy watercolor depth layer</title>
+  <desc id="desc">Semi-transparent blurred watercolor clouds in violet, blue, magenta, and teal with tiny star flecks.</desc>
+  <defs>
+    <filter id="watercolor-far" x="-20%" y="-30%" width="140%" height="160%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.008 0.018" numOctaves="4" seed="19" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="42" xChannelSelector="R" yChannelSelector="G"/>
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+    <radialGradient id="aquaBloom" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#6ee7f7" stop-opacity=".55"/>
+      <stop offset=".52" stop-color="#4c9bd8" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#4c9bd8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="roseBloom" cx="50%" cy="50%" r="52%">
+      <stop offset="0" stop-color="#f05b9b" stop-opacity=".48"/>
+      <stop offset=".58" stop-color="#8f3eb5" stop-opacity=".26"/>
+      <stop offset="1" stop-color="#8f3eb5" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="violetBloom" cx="50%" cy="50%" r="56%">
+      <stop offset="0" stop-color="#bda8d9" stop-opacity=".42"/>
+      <stop offset=".48" stop-color="#5d52a3" stop-opacity=".24"/>
+      <stop offset="1" stop-color="#2b1b53" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <g opacity=".68" filter="url(#watercolor-far)">
+    <path fill="#2f2d83" opacity=".24" d="M-82 323c132-176 321-194 501-138 120 37 178 8 291-22 162-43 333-11 438 113 100 119 224 99 363 76 174-28 317 56 425 200v281c-208 67-396 39-559-77-125-88-240-77-367 9-192 131-382 142-571 34-147-84-306-70-521 61z"/>
+    <path fill="#65379c" opacity=".34" d="M13 198c111-61 238-65 366 14 98 60 187 64 295 13 176-83 365-60 497 71 112 112 231 114 384 63 145-48 267-7 384 97v289c-178 61-347 34-508-79-131-92-267-101-408-18-165 97-313 91-445-20-126-106-263-114-418-43-74 34-156 42-242 24z"/>
+    <path fill="#d73f94" opacity=".23" d="M-46 521c154-79 301-84 441-14 105 52 209 40 313-36 149-109 316-117 501-24 128 65 249 56 363-26 136-98 258-97 364 2v274c-122 38-246 30-372-23-138-58-258-38-360 61-133 130-301 147-504 52-164-77-306-67-426 30-92 74-201 86-326 34z"/>
+    <path fill="#39c7e2" opacity=".26" d="M393 741c63-120 157-181 284-183 109-2 197-49 264-141 87-120 217-157 390-111 119 32 224-13 314-136 84-114 181-140 291-77v639c-103 52-208 67-316 45-113-22-208 9-286 94-101 109-218 139-351 88-112-43-202-25-270 54-93 108-198 120-316 36z"/>
+  </g>
+
+  <g opacity=".62">
+    <ellipse cx="397" cy="286" rx="230" ry="132" fill="url(#roseBloom)"/>
+    <ellipse cx="961" cy="562" rx="346" ry="188" fill="url(#aquaBloom)"/>
+    <ellipse cx="1507" cy="374" rx="310" ry="180" fill="url(#violetBloom)"/>
+    <ellipse cx="1296" cy="842" rx="294" ry="132" fill="url(#roseBloom)"/>
+  </g>
+
+  <g fill="#ffffff" opacity=".68">
+    <circle cx="219" cy="303" r="4"/><circle cx="294" cy="406" r="6"/><circle cx="456" cy="247" r="3"/>
+    <circle cx="626" cy="384" r="5"/><circle cx="751" cy="284" r="3"/><circle cx="863" cy="452" r="7"/>
+    <circle cx="1027" cy="283" r="4"/><circle cx="1119" cy="606" r="5"/><circle cx="1248" cy="501" r="3"/>
+    <circle cx="1397" cy="292" r="5"/><circle cx="1501" cy="474" r="6"/><circle cx="1676" cy="361" r="3"/>
+    <circle cx="1781" cy="624" r="5"/><circle cx="1603" cy="786" r="3"/><circle cx="1361" cy="875" r="6"/>
+    <circle cx="1088" cy="844" r="3"/><circle cx="819" cy="812" r="5"/><circle cx="582" cy="873" r="4"/>
+    <circle cx="377" cy="754" r="3"/><circle cx="154" cy="677" r="5"/>
+  </g>
+</svg>

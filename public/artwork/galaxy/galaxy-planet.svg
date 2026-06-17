@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-140 -110 280 220" width="560" height="440" role="img" aria-label="Two-tone galaxy planet">
+  <defs>
+    <clipPath id="planetClip"><circle r="70"/></clipPath>
+  </defs>
+  <circle r="70" fill="#fff8ea" stroke="#4ab3d4" stroke-width="7"/>
+  <g clip-path="url(#planetClip)">
+    <path fill="#4ab3d4" d="M-82 20c38-27 76-32 113-15 41 18 82 12 124-18v94H-82z"/>
+  </g>
+  <ellipse rx="129" ry="30" fill="none" stroke="#4ab3d4" stroke-width="13" transform="rotate(-16)"/>
+  <ellipse rx="100" ry="20" fill="none" stroke="#fff8ea" stroke-width="9" transform="rotate(-16)"/>
+</svg>

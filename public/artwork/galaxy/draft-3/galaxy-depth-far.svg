@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Draft 3 far ultra-simple color slab layer</title>
+  <desc id="desc">Huge translucent watercolor-like geometric slabs in violet, cyan, magenta, and blue.</desc>
+  <defs>
+    <filter id="slab-soften" x="-16%" y="-22%" width="132%" height="144%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.006 0.014" numOctaves="2" seed="93" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="18"/>
+      <feGaussianBlur stdDeviation="28"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#slab-soften)" opacity=".7">
+    <rect x="-80" y="206" width="620" height="210" fill="#8f3eb5" opacity=".34"/>
+    <rect x="386" y="346" width="760" height="196" fill="#2f80c1" opacity=".3"/>
+    <rect x="790" y="220" width="700" height="184" fill="#ec4e9b" opacity=".28"/>
+    <rect x="1134" y="448" width="840" height="222" fill="#3550a3" opacity=".33"/>
+    <rect x="510" y="690" width="620" height="170" fill="#39c7e2" opacity=".24"/>
+    <rect x="-30" y="682" width="420" height="168" fill="#5d52a3" opacity=".24"/>
+  </g>
+
+  <g fill="#ffffff" opacity=".68">
+    <rect x="272" y="330" width="10" height="10"/><rect x="494" y="466" width="8" height="8"/>
+    <rect x="724" y="292" width="8" height="8"/><rect x="888" y="612" width="10" height="10"/>
+    <rect x="1110" y="388" width="8" height="8"/><rect x="1292" y="552" width="10" height="10"/>
+    <rect x="1508" y="314" width="8" height="8"/><rect x="1692" y="620" width="10" height="10"/>
+    <rect x="1354" y="818" width="8" height="8"/><rect x="1002" y="790" width="8" height="8"/>
+    <rect x="650" y="846" width="10" height="10"/><rect x="326" y="744" width="8" height="8"/>
+  </g>
+</svg>

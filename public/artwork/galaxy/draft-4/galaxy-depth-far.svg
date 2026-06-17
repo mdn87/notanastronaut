@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Draft 4 far abstract plaid field</title>
+  <desc id="desc">Translucent plaid-like watercolor slabs with faint repeated curved and dotted lines.</desc>
+  <defs>
+    <filter id="wash" x="-12%" y="-18%" width="124%" height="136%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.007 0.015" numOctaves="2" seed="144" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="20"/>
+      <feGaussianBlur stdDeviation="24"/>
+    </filter>
+    <pattern id="dots" width="92" height="66" patternUnits="userSpaceOnUse">
+      <circle cx="8" cy="9" r="3" fill="#ffffff" opacity=".58"/>
+      <circle cx="56" cy="42" r="2" fill="#ffffff" opacity=".42"/>
+    </pattern>
+  </defs>
+
+  <g filter="url(#wash)" opacity=".74">
+    <rect x="-70" y="210" width="2060" height="168" fill="#8f3eb5" opacity=".3"/>
+    <rect x="-40" y="432" width="1980" height="144" fill="#2f80c1" opacity=".26"/>
+    <rect x="-90" y="646" width="2020" height="142" fill="#39c7e2" opacity=".22"/>
+    <rect x="300" y="120" width="150" height="820" fill="#5d52a3" opacity=".22"/>
+    <rect x="792" y="80" width="176" height="880" fill="#ec4e9b" opacity=".2"/>
+    <rect x="1308" y="130" width="210" height="840" fill="#3550a3" opacity=".22"/>
+  </g>
+
+  <rect width="1920" height="1080" fill="url(#dots)" opacity=".58"/>
+
+  <g fill="none" stroke-linecap="round" opacity=".5">
+    <path d="M-80 320C180 254 350 256 540 326s348 76 580-4 430-91 850 48" stroke="#ffffff" stroke-width="5" stroke-dasharray="1 24"/>
+    <path d="M-70 520C210 424 398 428 606 536s410 110 650-4 432-122 724 22" stroke="#ffffff" stroke-width="4" stroke-dasharray="1 22"/>
+    <path d="M-90 734C190 660 384 664 600 742s418 82 632-4 406-92 748 24" stroke="#ffffff" stroke-width="5" stroke-dasharray="1 26"/>
+  </g>
+</svg>

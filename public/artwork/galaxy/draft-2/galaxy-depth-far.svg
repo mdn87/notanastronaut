@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Draft 2 far abstract galaxy layer</title>
+  <desc id="desc">Very simple translucent rectangular and circular watercolor fields in blue, violet, magenta, and teal.</desc>
+  <defs>
+    <filter id="block-blur" x="-20%" y="-25%" width="140%" height="150%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.009 0.016" numOctaves="3" seed="44" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="30"/>
+      <feGaussianBlur stdDeviation="24"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#block-blur)" opacity=".68">
+    <rect x="-110" y="164" width="760" height="250" rx="88" fill="#8f3eb5" opacity=".38"/>
+    <rect x="242" y="316" width="780" height="300" rx="108" fill="#2f80c1" opacity=".34"/>
+    <rect x="780" y="212" width="720" height="250" rx="96" fill="#ec4e9b" opacity=".3"/>
+    <rect x="1118" y="394" width="860" height="300" rx="112" fill="#3550a3" opacity=".36"/>
+    <rect x="494" y="650" width="760" height="240" rx="96" fill="#39c7e2" opacity=".28"/>
+    <rect x="-60" y="690" width="560" height="210" rx="80" fill="#5d52a3" opacity=".28"/>
+    <circle cx="1412" cy="750" r="168" fill="#d85fa5" opacity=".25"/>
+    <circle cx="1078" cy="506" r="138" fill="#6ee7f7" opacity=".24"/>
+  </g>
+
+  <g fill="#ffffff" opacity=".72">
+    <circle cx="202" cy="288" r="5"/><circle cx="346" cy="452" r="4"/><circle cx="574" cy="262" r="3"/>
+    <circle cx="724" cy="609" r="5"/><circle cx="890" cy="346" r="4"/><circle cx="1024" cy="508" r="6"/>
+    <circle cx="1198" cy="282" r="4"/><circle cx="1360" cy="606" r="5"/><circle cx="1518" cy="386" r="3"/>
+    <circle cx="1698" cy="548" r="5"/><circle cx="1588" cy="804" r="4"/><circle cx="1246" cy="854" r="5"/>
+    <circle cx="958" cy="790" r="3"/><circle cx="644" cy="862" r="4"/><circle cx="318" cy="748" r="5"/>
+  </g>
+</svg>

@@ -151,11 +151,6 @@ function directDynamicImports(manifest, startKeys) {
   return dynamic;
 }
 
-function isWorldRoot(manifest, key) {
-  const src = manifest[key]?.src ?? key;
-  return src.startsWith('src/world/') || src.includes('/src/world/');
-}
-
 function mediaRefsFromCssFiles(dist, cssFiles) {
   const refs = new Set();
   for (const file of cssFiles) {
@@ -185,7 +180,9 @@ export function measureBudgets({ dist = join(process.cwd(), 'dist') } = {}) {
   if (entryKeys.length === 0) throw new Error('Vite manifest has no entry chunk.');
 
   const fallbackAssets = collectManifestAssets(manifest, entryKeys, { includeDynamic: false });
-  const worldRoots = [...directDynamicImports(manifest, entryKeys)].filter((key) => isWorldRoot(manifest, key));
+  // Everything dynamically imported from the entry is the lazy "world" bundle,
+  // regardless of how Rollup keys the chunk (it may hoist to a shared _name).
+  const worldRoots = [...directDynamicImports(manifest, entryKeys)];
   const worldAssets = collectManifestAssets(manifest, worldRoots, { includeDynamic: true });
 
   let fallback = gzipBytes(homepage);

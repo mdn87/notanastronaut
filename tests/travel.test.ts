@@ -27,14 +27,45 @@ describe('TravelMachine', () => {
     expect(m.state).toEqual({ kind: 'inTransit', from: 0, to: 1, t: 0 });
   });
 
-  it('clamps at the ends', () => {
+  it('steps back from node 0 into the overview, and clamps there', () => {
     const m = mk();
-    expect(m.back()).toBe(false); // at node 0
+    expect(m.back()).toBe(true); // node 0 -> overview transit
+    expect(m.state).toEqual({ kind: 'inTransit', from: 0, to: -1, t: 0 });
+    m.tick(10);
+    expect(m.state).toEqual({ kind: 'atNode', index: -1 }); // overview
+    expect(m.back()).toBe(false); // overview is the start; nothing behind it
+  });
+
+  it('advances out of the overview back to node 0', () => {
+    const m = mk();
+    m.back(); m.tick(10); // now at overview (-1)
+    expect(m.advance()).toBe(true);
+    expect(m.state).toEqual({ kind: 'inTransit', from: -1, to: 0, t: 0 });
+    m.tick(10);
+    expect(m.state).toEqual({ kind: 'atNode', index: 0 });
+  });
+
+  it('jumps straight to a node from the overview', () => {
+    const m = mk();
+    m.back(); m.tick(10); // overview
+    expect(m.jumpTo(3)).toBe(true);
+    expect(m.state).toEqual({ kind: 'inTransit', from: -1, to: 3, t: 0 });
+  });
+
+  it('clamps advancing past the last node', () => {
     const last = mk();
     last.jumpTo(5);
     last.tick(10);
     expect(last.state).toEqual({ kind: 'atNode', index: 5 });
     expect(last.advance()).toBe(false);
+  });
+
+  it('fires onArrive with -1 when reaching the overview', () => {
+    const m = mk({ transitDuration: 1 });
+    const arrivals: number[] = [];
+    m.onArrive((i) => arrivals.push(i));
+    m.back(); m.tick(1);
+    expect(arrivals).toEqual([-1]);
   });
 
   it('rejects invalid jump targets without changing state', () => {
