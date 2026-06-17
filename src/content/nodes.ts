@@ -10,7 +10,7 @@ export const NODES: NodeDef[] = [
   {
     id: 'intro', title: 'HI. I’m Matt', route: '/', accent: '#4ab3d4',
     pos: { x: 0, y: 0, z: 0 }, kind: 'intro',
-    tagline: 'Engineer. Designer. Not actually an astronaut.',
+    tagline: 'Just kinda floating there...',
     body: '<p>I build agent infrastructure, AI tooling, and the occasional 3D printer brain transplant. This site is a star map of missions — scroll to fly between them, or use the list view.</p><p class="joke">*not actually an astronaut</p>',
   },
   {
