@@ -14,3 +14,34 @@ export interface NodeDef {
 export type TravelState =
   | { kind: 'atNode'; index: number }
   | { kind: 'inTransit'; from: number; to: number; t: number }; // t in [0,1], linear
+
+export type MotionPhase = 'overview' | 'atNode' | 'inTransit';
+
+interface RailMotionBase {
+  progress: number;
+  targetProgress: number;
+  velocity: number;
+}
+
+export type RailMotionState =
+  | (RailMotionBase & {
+      phase: 'overview';
+      from: -1;
+      to: 0;
+      t: 0;
+      settledIndex: -1;
+    })
+  | (RailMotionBase & {
+      phase: 'atNode';
+      from: number;
+      to: number;
+      t: 1;
+      settledIndex: number;
+    })
+  | (RailMotionBase & {
+      phase: 'inTransit';
+      from: number;
+      to: number;
+      t: number;
+      settledIndex: null;
+    });
