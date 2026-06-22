@@ -8,6 +8,7 @@ const hudMocks = vi.hoisted(() => {
     nodes: unknown;
     site: unknown;
     setAtNode: ReturnType<typeof vi.fn>;
+    setOverview: ReturnType<typeof vi.fn>;
     setTransit: ReturnType<typeof vi.fn>;
     setLabels: ReturnType<typeof vi.fn>;
     dispose: ReturnType<typeof vi.fn>;
@@ -19,6 +20,7 @@ const hudMocks = vi.hoisted(() => {
       nodes: unknown;
       site: unknown;
       setAtNode: ReturnType<typeof vi.fn>;
+      setOverview: ReturnType<typeof vi.fn>;
       setTransit: ReturnType<typeof vi.fn>;
       setLabels: ReturnType<typeof vi.fn>;
       dispose: ReturnType<typeof vi.fn>;
@@ -31,6 +33,7 @@ const hudMocks = vi.hoisted(() => {
     this.nodes = nodes;
     this.site = site;
     this.setAtNode = vi.fn();
+    this.setOverview = vi.fn();
     this.setTransit = vi.fn();
     this.setLabels = vi.fn();
     this.dispose = vi.fn();
@@ -171,12 +174,15 @@ describe('wireWorld', () => {
 
     runFrame(callbacks, 1, performance.now() + 16);
 
-    expect(scene.frame).toHaveBeenCalledWith(expect.any(Number), { kind: 'atNode', index: 3 });
+    expect(scene.frame).toHaveBeenCalledWith(
+      expect.any(Number),
+      expect.objectContaining({ phase: 'atNode', progress: 3, settledIndex: 3 }),
+    );
 
     cleanup();
   });
 
-  it('turns a wheel gesture into one transit and pushes the arrival route with the current query string', () => {
+  it('turns reduced wheel gestures into node-to-node transits and pushes arrival routes with the current query string', () => {
     const { callbacks } = installAnimationFrame();
     const { canvas, history, windowTarget } = installDom('/', '?mode=world');
     const scene = makeScene(canvas);
@@ -191,10 +197,37 @@ describe('wireWorld', () => {
 
     expect(hudMocks.instances[0]!.setAtNode).toHaveBeenLastCalledWith(1);
     expect(history.pushState).toHaveBeenCalledWith(null, '', '/missions/agent-ops?mode=world');
-    expect(scene.frame).toHaveBeenCalledWith(expect.any(Number), { kind: 'atNode', index: 1 });
+    expect(scene.frame).toHaveBeenCalledWith(
+      expect.any(Number),
+      expect.objectContaining({ phase: 'atNode', progress: 1, settledIndex: 1 }),
+    );
 
     windowTarget.dispatch('wheel', { deltaY: 120 });
-    expect(hudMocks.instances[0]!.setTransit).toHaveBeenCalledTimes(1);
+    expect(hudMocks.instances[0]!.setTransit).toHaveBeenLastCalledWith(2);
+    runFrame(callbacks, 2, performance.now() + 32);
+    expect(hudMocks.instances[0]!.setAtNode).toHaveBeenLastCalledWith(2);
+
+    cleanup();
+  });
+
+  it('coalesces reduced wheel bursts before the next frame', () => {
+    const { callbacks } = installAnimationFrame();
+    const { canvas, history, windowTarget } = installDom('/', '?mode=world');
+    const scene = makeScene(canvas);
+
+    const cleanup = wireWorld(scene, { nodes: NODES, site: SITE, reducedMotion: true });
+
+    windowTarget.dispatch('wheel', { deltaY: 120 });
+    windowTarget.dispatch('wheel', { deltaY: 120 });
+    windowTarget.dispatch('wheel', { deltaY: 120 });
+
+    expect(hudMocks.instances[0]!.setTransit).toHaveBeenCalledWith(1);
+
+    runFrame(callbacks, 1, performance.now() + 16);
+
+    expect(hudMocks.instances[0]!.setAtNode).toHaveBeenLastCalledWith(1);
+    expect(history.pushState).toHaveBeenCalledTimes(1);
+    expect(history.pushState).toHaveBeenCalledWith(null, '', '/missions/agent-ops?mode=world');
 
     cleanup();
   });
@@ -251,7 +284,31 @@ describe('wireWorld', () => {
 
     expect(hudMocks.instances[0]!.setAtNode).toHaveBeenLastCalledWith(5);
     expect(history.pushState).not.toHaveBeenCalled();
-    expect(scene.frame).toHaveBeenCalledWith(expect.any(Number), { kind: 'atNode', index: 5 });
+    expect(scene.frame).toHaveBeenCalledWith(
+      expect.any(Number),
+      expect.objectContaining({ phase: 'atNode', progress: 5, settledIndex: 5 }),
+    );
+
+    cleanup();
+  });
+
+  it('passes non-reduced wheel deltas through as continuous rail motion', () => {
+    const { callbacks } = installAnimationFrame();
+    const { canvas, windowTarget } = installDom('/', '?mode=world');
+    const scene = makeScene(canvas);
+
+    const cleanup = wireWorld(scene, { nodes: NODES, site: SITE, reducedMotion: false });
+
+    windowTarget.dispatch('wheel', { deltaY: 20 });
+    runFrame(callbacks, 1, performance.now() + 16);
+
+    expect(scene.frame).toHaveBeenCalledWith(
+      expect.any(Number),
+      expect.objectContaining({ phase: 'inTransit', settledIndex: null }),
+    );
+    const motionState = vi.mocked(scene.frame).mock.calls.at(-1)?.[1] as unknown as { progress: number };
+    expect(motionState.progress).toBeGreaterThan(0);
+    expect(motionState.progress).toBeLessThan(1);
 
     cleanup();
   });

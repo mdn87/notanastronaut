@@ -1,80 +1,90 @@
-import { WheelIntent } from '../core/intent';
-import { TravelMachine } from '../core/travel';
+import { MotionController } from '../core/motion';
 import { Hud } from '../hud/hud';
 import { routeToIndex } from '../router';
+import type { RailMotionState } from '../core/types';
 import type { WorldScene } from './scene';
 import type { MountOpts, WorldCleanup } from './mount';
 
 const MAX_DT_SECONDS = 0.05;
-const TRANSIT_SECONDS = 1.5;
 const SWIPE_THRESHOLD_PX = 60;
+
+type RailMotionScene = Omit<WorldScene, 'frame'> & {
+  frame(dt: number, motion: RailMotionState): void;
+};
 
 export function wireWorld(scene: WorldScene, opts: MountOpts): WorldCleanup {
   const { nodes, site, reducedMotion } = opts;
-  const transitDuration = reducedMotion ? 0 : TRANSIT_SECONDS;
+  const railScene = scene as unknown as RailMotionScene;
   const hud = new Hud(document.getElementById('hud-root')!, nodes, site);
-  const travel = new TravelMachine(nodes.length, {
-    transitDuration,
-  });
-  const wheel = new WheelIntent();
+  const motion = new MotionController(nodes.length, { reducedMotion });
   const canvas = scene.renderer.domElement;
   let suppressHistoryPush = false;
+  let pendingArrival: { index: number; suppressHistoryPush: boolean } | null = null;
 
-  const depart = () => {
-    if (travel.state.kind === 'inTransit') {
-      hud.setTransit(travel.state.to);
+  const updateTransitHud = (previousSettledIndex: number | null) => {
+    const state = motion.snapshot();
+    if (state.phase === 'inTransit') {
+      hud.setTransit(state.to);
+      return;
+    }
+    if (reducedMotion && state.settledIndex !== previousSettledIndex) {
+      hud.setTransit(state.settledIndex);
     }
   };
   const advance = () => {
-    if (travel.advance()) depart();
+    const previousSettledIndex = motion.snapshot().settledIndex;
+    if (motion.advance()) updateTransitHud(previousSettledIndex);
   };
   const back = () => {
-    if (travel.back()) depart();
+    const previousSettledIndex = motion.snapshot().settledIndex;
+    if (motion.back()) updateTransitHud(previousSettledIndex);
   };
   const jumpTo = (index: number) => {
-    if (travel.jumpTo(index)) depart();
-  };
-  const settleTransitWithoutHistoryPush = () => {
-    if (travel.state.kind !== 'inTransit') return;
-    suppressHistoryPush = true;
-    try {
-      travel.tick(Number.POSITIVE_INFINITY);
-    } finally {
-      suppressHistoryPush = false;
-    }
+    const previousSettledIndex = motion.snapshot().settledIndex;
+    if (motion.jumpTo(index)) updateTransitHud(previousSettledIndex);
   };
   const syncToCurrentRoute = () => {
     const index = routeToIndex(location.pathname, nodes);
     if (index === null) return;
-    settleTransitWithoutHistoryPush();
-    if (travel.state.kind === 'atNode' && travel.state.index === index) {
+    if (motion.snapshot().settledIndex === index) {
       hud.setAtNode(index);
       return;
     }
-    jumpTo(index);
+    hud.setTransit(index);
+    suppressHistoryPush = true;
+    try {
+      motion.setProgress(index);
+    } finally {
+      suppressHistoryPush = false;
+    }
   };
 
   const startIndex = routeToIndex(location.pathname, nodes) ?? 0;
-  if (startIndex !== 0) {
-    travel.jumpTo(startIndex);
-    travel.tick(transitDuration);
-  }
+  motion.setProgress(startIndex);
   hud.setAtNode(startIndex);
 
-  const unlistenArrive = travel.onArrive((index) => {
+  const unlistenArrive = motion.onArrive((index) => {
+    pendingArrival = { index, suppressHistoryPush };
+  });
+
+  const flushArrival = () => {
+    if (!pendingArrival) return;
+    const { index, suppressHistoryPush: shouldSuppressHistoryPush } = pendingArrival;
+    pendingArrival = null;
     if (index < 0) { hud.setOverview(); return; } // arrived at the galaxy overview
     hud.setAtNode(index);
     const route = nodes[index]?.route;
     const nextUrl = route ? `${route}${location.search}` : null;
-    if (!suppressHistoryPush && nextUrl && `${location.pathname}${location.search}` !== nextUrl) {
+    if (!shouldSuppressHistoryPush && nextUrl && `${location.pathname}${location.search}` !== nextUrl) {
       history.pushState(null, '', nextUrl);
     }
-  });
+  };
 
   const onWheel = (event: WheelEvent) => {
-    const direction = wheel.feed(event.deltaY, performance.now());
-    if (direction > 0) advance();
-    else if (direction < 0) back();
+    if (reducedMotion && pendingArrival) return;
+    const previousSettledIndex = motion.snapshot().settledIndex;
+    motion.nudge(event.deltaY);
+    updateTransitHud(previousSettledIndex);
   };
   addEventListener('wheel', onWheel, { passive: true });
 
@@ -117,8 +127,10 @@ export function wireWorld(scene: WorldScene, opts: MountOpts): WorldCleanup {
     if (stopped) return;
     const dt = Math.min(MAX_DT_SECONDS, Math.max(0, (now - last) / 1000));
     last = now;
-    travel.tick(dt);
-    scene.frame(dt, travel.state);
+    motion.tick(dt);
+    const motionState = motion.snapshot();
+    railScene.frame(dt, motionState);
+    flushArrival();
     hud.setLabels(scene.labels());
     frameId = requestAnimationFrame(loop);
   };
