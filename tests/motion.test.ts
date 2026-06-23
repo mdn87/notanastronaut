@@ -74,6 +74,65 @@ describe('MotionController', () => {
     expect(s.to).toBe(1);
   });
 
+  it('small default wheel nudges visibly depart a settled node', () => {
+    const m = new MotionController(6);
+
+    m.nudge(20);
+    m.tick(0.05);
+
+    const s = m.snapshot();
+    expect(s.phase).toBe('inTransit');
+    expect(s.targetProgress).toBeGreaterThan(0.12);
+    expect(s.progress).toBeGreaterThan(0);
+  });
+
+  it('small default wheel nudges from rest settle at the adjacent node', () => {
+    const m = new MotionController(6);
+
+    m.nudge(20);
+    for (let i = 0; i < 180; i++) m.tick(1 / 60);
+
+    expect(m.snapshot()).toMatchObject({ phase: 'atNode', progress: 1, settledIndex: 1 });
+  });
+
+  it('small default wheel nudges backward from the final node settle at the previous node', () => {
+    const m = new MotionController(6);
+    m.setProgress(5);
+
+    m.nudge(-20);
+    for (let i = 0; i < 180; i++) m.tick(1 / 60);
+
+    expect(m.snapshot()).toMatchObject({ phase: 'atNode', progress: 4, settledIndex: 4 });
+  });
+
+  it('large default wheel nudges cannot fling the target several nodes ahead', () => {
+    const m = new MotionController(6);
+
+    m.nudge(3000);
+
+    expect(m.snapshot().targetProgress).toBeLessThanOrEqual(1);
+  });
+
+  it('wheel bursts do not push past the next stop before arrival', () => {
+    const m = new MotionController(6);
+
+    m.nudge(140);
+    m.tick(0.2);
+    m.nudge(140);
+
+    expect(m.snapshot().targetProgress).toBe(1);
+  });
+
+  it('advance does not skip past an in-flight wheel target', () => {
+    const m = new MotionController(6);
+
+    m.nudge(140);
+    m.tick(0.6);
+
+    expect(m.advance()).toBe(false);
+    expect(m.snapshot().targetProgress).toBe(1);
+  });
+
   it('snaps to a nearby node when velocity decays', () => {
     const m = new MotionController(6, { snapRadius: 0.18, damping: 14 });
     m.jumpTo(1);

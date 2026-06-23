@@ -11,6 +11,9 @@ export interface MotionOpts {
   maxVelocity?: number;
   passThroughVelocity?: number;
   settleEpsilon?: number;
+  minWheelStep?: number;
+  maxWheelStep?: number;
+  maxWheelLead?: number;
 }
 
 const DEFAULTS = {
@@ -22,6 +25,9 @@ const DEFAULTS = {
   maxVelocity: 8,
   passThroughVelocity: 1.2,
   settleEpsilon: 0.01,
+  minWheelStep: 0.16,
+  maxWheelStep: 0.45,
+  maxWheelLead: 1,
 };
 
 export class MotionController {
@@ -35,6 +41,9 @@ export class MotionController {
   private readonly maxVelocity: number;
   private readonly passThroughVelocity: number;
   private readonly settleEpsilon: number;
+  private readonly minWheelStep: number;
+  private readonly maxWheelStep: number;
+  private readonly maxWheelLead: number;
   private arriveCbs: Array<(index: number) => void> = [];
   private progress = 0;
   private targetProgress = 0;
@@ -56,6 +65,9 @@ export class MotionController {
     this.maxVelocity = this.nonnegativeOrDefault(opts.maxVelocity, DEFAULTS.maxVelocity, { fallbackOnNegative: true });
     this.passThroughVelocity = this.nonnegativeOrDefault(opts.passThroughVelocity, DEFAULTS.passThroughVelocity);
     this.settleEpsilon = this.nonnegativeOrDefault(opts.settleEpsilon, DEFAULTS.settleEpsilon, { fallbackOnNegative: true });
+    this.minWheelStep = this.nonnegativeOrDefault(opts.minWheelStep, DEFAULTS.minWheelStep);
+    this.maxWheelStep = this.nonnegativeOrDefault(opts.maxWheelStep, DEFAULTS.maxWheelStep);
+    this.maxWheelLead = this.nonnegativeOrDefault(opts.maxWheelLead, DEFAULTS.maxWheelLead);
   }
 
   onArrive(cb: (index: number) => void): () => void {
@@ -158,12 +170,19 @@ export class MotionController {
       return;
     }
 
-    const delta = deltaY * this.wheelScale;
     const settled = this.settledIndex();
-    this.targetProgress = this.clampProgress(this.targetProgress + delta);
-    if (settled !== null && this.targetProgress !== settled) {
+    if (settled !== null) {
+      const next = settled + Math.sign(deltaY);
+      if (next < OVERVIEW_INDEX || next > this.maxProgress()) return;
+      this.targetProgress = next;
       this.lastArrivedIndex = null;
+      this.velocity = this.clampVelocity(Math.sign(deltaY) * this.minWheelStep);
+      return;
     }
+
+    const delta = this.wheelDelta(deltaY);
+    if (this.shouldHoldWheelTarget(delta)) return;
+    this.targetProgress = this.clampWheelTarget(this.targetProgress + delta);
 
     this.velocity = this.clampVelocity(this.velocity + delta);
   }
@@ -212,8 +231,21 @@ export class MotionController {
   }
 
   private stepBy(direction: -1 | 1): boolean {
-    const base = this.settledIndex() ?? Math.round(this.targetProgress);
-    const next = base + direction;
+    const settled = this.settledIndex();
+    if (settled !== null) {
+      const next = settled + direction;
+      if (next < OVERVIEW_INDEX || next > this.maxProgress()) return false;
+      return this.jumpTo(next);
+    }
+
+    const target = Math.round(this.targetProgress);
+    if (Math.abs(this.targetProgress - target) <= this.settleEpsilon) {
+      const directionToTarget = Math.sign(this.targetProgress - this.progress);
+      if (directionToTarget === direction) return false;
+      if (directionToTarget === -direction) return this.jumpTo(target + direction);
+    }
+
+    const next = Math.round(this.targetProgress) + direction;
     if (next < OVERVIEW_INDEX || next > this.maxProgress()) return false;
     return this.jumpTo(next);
   }
@@ -236,6 +268,32 @@ export class MotionController {
 
   private maxProgress(): number {
     return this.nodeCount - 1;
+  }
+
+  private wheelDelta(deltaY: number): number {
+    const scaled = deltaY * this.wheelScale;
+    const sign = Math.sign(scaled);
+    if (sign === 0) return 0;
+
+    let magnitude = Math.abs(scaled);
+    magnitude = Math.min(this.maxWheelStep, magnitude);
+    return sign * magnitude;
+  }
+
+  private shouldHoldWheelTarget(delta: number): boolean {
+    const target = Math.round(this.targetProgress);
+    if (Math.abs(this.targetProgress - target) > this.settleEpsilon) return false;
+
+    const directionToTarget = Math.sign(this.targetProgress - this.progress);
+    if (directionToTarget === 0) return false;
+    return Math.sign(delta) === directionToTarget;
+  }
+
+  private clampWheelTarget(target: number): number {
+    const clamped = this.clampProgress(target);
+    const lead = Math.max(0, this.maxWheelLead);
+    if (lead === 0) return clamped;
+    return this.clampProgress(Math.min(this.progress + lead, Math.max(this.progress - lead, clamped)));
   }
 
   private finiteOrDefault(value: number | undefined, fallback: number): number {
