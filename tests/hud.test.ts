@@ -47,4 +47,23 @@ describe('Hud', () => {
     expect(root.replaceChildren).toHaveBeenCalledTimes(1);
     expect(root.innerHTML).toBe('');
   });
+
+  it('labels the overview as a route view', () => {
+    const root = new FakeElement();
+    const hud = new Hud(root as unknown as HTMLElement, NODES, SITE);
+
+    hud.setOverview();
+
+    expect(root.querySelector('.status').textContent).toBe('★ ROUTE VIEW · 06 STOPS');
+    expect(root.querySelector('.hint').textContent).toBe('scroll ↓ to enter · click a stop');
+  });
+
+  it('uses route-view language while traveling to the overview', () => {
+    const root = new FakeElement();
+    const hud = new Hud(root as unknown as HTMLElement, NODES, SITE);
+
+    hud.setTransit(-1);
+
+    expect(root.querySelector('.status').textContent).toBe('▸ ROUTE VIEW');
+  });
 });

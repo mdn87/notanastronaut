@@ -4,8 +4,8 @@
   position: absolute; top: 0; left: 0; opacity: 0; white-space: nowrap;
   transform-origin: right center;
   font-family: var(--font-sans); font-weight: 800; font-size: 1.5rem;
-  letter-spacing: -0.01em; color: var(--sky-text);
-  text-shadow: 0 0 6px #fff, 0 0 6px #fff, 0 1px 0 #fff;
+  letter-spacing: 0; color: var(--sky-text);
+  text-shadow: 0 0 8px #fff, 0 0 8px #fff, 0 0 14px #fff, 0 1px 0 #fff;
 }
 .hud-brand {
   position: absolute; top: 14px; left: 18px; pointer-events: auto;

@@ -83,7 +83,7 @@ export class Hud {
     if (this.currentKey === key) return;
     this.currentKey = key;
     this.status.textContent = to < 0
-      ? '▸ STAR MAP'
+      ? '▸ ROUTE VIEW'
       : `▸ EN ROUTE: ${this.nodes[to]!.title.toUpperCase()}`;
     this.hint.textContent = '';
     this.panel.setAttribute('hidden', '');
@@ -94,8 +94,8 @@ export class Hud {
     const key = 'overview';
     if (this.currentKey === key) return;
     this.currentKey = key;
-    this.status.textContent = `★ STAR MAP · ${pad(this.nodes.length)} MISSIONS`;
-    this.hint.textContent = 'scroll ↓ to enter · click a planet';
+    this.status.textContent = `★ ROUTE VIEW · ${pad(this.nodes.length)} STOPS`;
+    this.hint.textContent = 'scroll ↓ to enter · click a stop';
     this.panel.setAttribute('hidden', '');
   }
 }
