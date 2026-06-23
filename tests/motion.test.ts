@@ -81,6 +81,20 @@ describe('MotionController', () => {
     expect(m.snapshot()).toMatchObject({ phase: 'atNode', progress: 1, settledIndex: 1 });
   });
 
+  it('keeps default node hops visually unhurried', () => {
+    const m = new MotionController(6);
+    m.advance();
+
+    for (let i = 0; i < 15; i++) m.tick(1 / 60);
+    expect(m.snapshot().progress).toBeLessThan(0.55);
+
+    for (let i = 0; i < 45; i++) m.tick(1 / 60);
+    expect(m.snapshot().phase).toBe('inTransit');
+
+    for (let i = 0; i < 90; i++) m.tick(1 / 60);
+    expect(m.snapshot()).toMatchObject({ phase: 'atNode', progress: 1, settledIndex: 1 });
+  });
+
   it('settles fractional targets inside the snap radius onto the nearest node', () => {
     const m = new MotionController(6, { snapRadius: 0.18, damping: 14 });
     const arrivals: number[] = [];

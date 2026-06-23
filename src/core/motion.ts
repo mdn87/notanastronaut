@@ -15,13 +15,13 @@ export interface MotionOpts {
 
 const DEFAULTS = {
   wheelScale: 0.0015,
-  stepDuration: 0.75,
-  damping: 10,
+  stepDuration: 2,
+  damping: 5,
   snapRadius: 0.12,
   snapStrength: 8,
   maxVelocity: 8,
   passThroughVelocity: 1.2,
-  settleEpsilon: 0.001,
+  settleEpsilon: 0.01,
 };
 
 export class MotionController {
