@@ -32,6 +32,19 @@ const smoothstep = (t: number) => t * t * (3 - 2 * t);
 const v3 = (v: Vec3) => new THREE.Vector3(v.x, v.y, v.z);
 const nodeRadius = (node: NodeDef) => node.kind === 'intro' || node.kind === 'contact' ? 1.6 : 2.25;
 
+const clampRange = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+export function safeLabelPoint(x: number, y: number, width: number, height: number): { x: number; y: number } {
+  const minX = Math.min(120, width * 0.25);
+  const maxX = Math.max(minX, width - 24);
+  const minY = Math.min(48, height * 0.2);
+  const maxY = Math.max(minY, height - 64);
+  return {
+    x: clampRange(x, minX, maxX),
+    y: clampRange(y, minY, maxY),
+  };
+}
+
 type SpriteDef = {
   url: string;
   aspect: number;
@@ -230,9 +243,10 @@ export class WorldScene {
     this.labelData = this.planets.map((planet, i) => {
       const ndc = planet.position.clone().project(this.camera);
       const focus = clamp01(1 - Math.abs(motion.progress - i) / 0.7) * (1 - ov);
+      const labelPoint = safeLabelPoint((ndc.x * 0.5 + 0.5) * w, (-ndc.y * 0.5 + 0.5) * h, w, h);
       return {
-        x: (ndc.x * 0.5 + 0.5) * w,
-        y: (-ndc.y * 0.5 + 0.5) * h,
+        x: labelPoint.x,
+        y: labelPoint.y,
         focus,
         visible: ndc.z < 1 && focus > 0.01,
       };

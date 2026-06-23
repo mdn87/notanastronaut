@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { NODES, SITE } from '../src/content/nodes';
-import { Hud } from '../src/hud/hud';
+import { Hud, safeLabelTranslateX } from '../src/hud/hud';
 
 class FakeElement {
   innerHTML = '';
@@ -65,5 +65,21 @@ describe('Hud', () => {
     hud.setTransit(-1);
 
     expect(root.querySelector('.status').textContent).toBe('▸ ROUTE VIEW');
+  });
+
+  it('keeps rendered floating labels inside the left viewport edge', () => {
+    const labelWidth = 217;
+
+    const x = safeLabelTranslateX(90, 1, labelWidth, 360);
+
+    expect(x - labelWidth).toBe(14);
+  });
+
+  it('keeps rendered floating labels inside the right viewport edge', () => {
+    const labelWidth = 217;
+
+    const x = safeLabelTranslateX(1500, 1, labelWidth, 360);
+
+    expect(x).toBe(346);
   });
 });

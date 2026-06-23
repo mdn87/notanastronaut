@@ -10,6 +10,16 @@ const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 const LABEL_MARGIN = 18; // px gap from the planet at rest
 const LABEL_EMERGE = 48; // px it slides outward while appearing
 const LABEL_RISE = 26;   // px it lifts while appearing
+const LABEL_VIEWPORT_MARGIN = 14;
+
+const clampRange = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+export function safeLabelTranslateX(x: number, focus: number, labelWidth: number, viewportWidth: number): number {
+  const desired = x - (LABEL_MARGIN + LABEL_EMERGE * focus);
+  const min = LABEL_VIEWPORT_MARGIN + labelWidth;
+  const max = Math.max(min, viewportWidth - LABEL_VIEWPORT_MARGIN);
+  return clampRange(desired, min, max);
+}
 
 /** DOM overlay adapter: console strip + node panel. Real HTML, never canvas text. */
 export class Hud {
@@ -58,7 +68,9 @@ export class Hud {
       const el = this.labelEls[i]!;
       const l = layout[i];
       if (!l || !l.visible) { el.style.opacity = '0'; continue; }
-      const tx = l.x - (LABEL_MARGIN + LABEL_EMERGE * l.focus);
+      const viewportWidth = this.root.ownerDocument.defaultView?.innerWidth ?? innerWidth;
+      const labelWidth = el.offsetWidth || el.getBoundingClientRect().width;
+      const tx = safeLabelTranslateX(l.x, l.focus, labelWidth, viewportWidth);
       const ty = l.y - LABEL_RISE * l.focus;
       el.style.transform = `translate(-100%, -50%) translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${(0.85 + 0.15 * l.focus).toFixed(3)})`;
       el.style.opacity = l.focus.toFixed(3);
