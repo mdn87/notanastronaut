@@ -1,20 +1,14 @@
 import { MotionController } from '../core/motion';
 import { Hud } from '../hud/hud';
 import { routeToIndex } from '../router';
-import type { RailMotionState } from '../core/types';
 import type { WorldScene } from './scene';
 import type { MountOpts, WorldCleanup } from './mount';
 
 const MAX_DT_SECONDS = 0.05;
 const SWIPE_THRESHOLD_PX = 60;
 
-type RailMotionScene = Omit<WorldScene, 'frame'> & {
-  frame(dt: number, motion: RailMotionState): void;
-};
-
 export function wireWorld(scene: WorldScene, opts: MountOpts): WorldCleanup {
   const { nodes, site, reducedMotion } = opts;
-  const railScene = scene as unknown as RailMotionScene;
   const hud = new Hud(document.getElementById('hud-root')!, nodes, site);
   const motion = new MotionController(nodes.length, { reducedMotion });
   const canvas = scene.renderer.domElement;
@@ -129,7 +123,7 @@ export function wireWorld(scene: WorldScene, opts: MountOpts): WorldCleanup {
     last = now;
     motion.tick(dt);
     const motionState = motion.snapshot();
-    railScene.frame(dt, motionState);
+    scene.frame(dt, motionState);
     flushArrival();
     hud.setLabels(scene.labels());
     frameId = requestAnimationFrame(loop);
