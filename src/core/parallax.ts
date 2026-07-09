@@ -45,3 +45,25 @@ export function makeBodies(seed: number, opts: ParallaxOpts = {}): ParallaxField
   }
   return { mid, far };
 }
+
+export interface VolumeBody { pos: Vec3; size: number; }
+
+/** Variable-size "depth squares" scattered through the flyable cube (radius `extent`). */
+export function makeVolumeBodies(
+  seed: number,
+  opts: { count?: number; extent?: number; minSize?: number; maxSize?: number } = {},
+): VolumeBody[] {
+  const count = Math.min(MAX_BODIES, Math.max(0, Math.floor(opts.count ?? 140)));
+  const extent = opts.extent ?? 260;
+  const minSize = opts.minSize ?? 0.8;
+  const maxSize = opts.maxSize ?? 9;
+  const rnd = mulberry32(seed);
+  const out: VolumeBody[] = [];
+  for (let i = 0; i < count; i++) {
+    out.push({
+      pos: { x: (rnd() * 2 - 1) * extent, y: (rnd() * 2 - 1) * extent, z: (rnd() * 2 - 1) * extent },
+      size: minSize + Math.pow(rnd(), 1.8) * (maxSize - minSize),
+    });
+  }
+  return out;
+}

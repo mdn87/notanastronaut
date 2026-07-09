@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { NODES } from '../src/content/nodes';
-import { chooseSurface, routeToIndex } from '../src/router';
+import { chooseSurface, routeToIndex, type SurfaceInputs } from '../src/router';
 
 describe('routeToIndex', () => {
   it('maps every route to its node', () => {
@@ -12,21 +12,21 @@ describe('routeToIndex', () => {
   });
 });
 
-describe('chooseSurface (authoritative reduced-motion rule)', () => {
-  it('forced mode always wins', () => {
-    expect(chooseSurface({ forced: 'world', reducedMotion: true, webgl: false })).toBe('world');
-    expect(chooseSurface({ forced: 'list', reducedMotion: false, webgl: true })).toBe('list');
-  });
+const base: SurfaceInputs = { forced: null, reducedMotion: false, webgl: true, hasFinePointer: true, isHome: true };
 
-  it('reduced motion defaults to list', () => {
-    expect(chooseSurface({ forced: null, reducedMotion: true, webgl: true })).toBe('list');
+describe('chooseSurface', () => {
+  it('world only when home + fine pointer + webgl + motion', () => {
+    expect(chooseSurface(base)).toBe('world');
   });
-
-  it('no webgl falls back to list', () => {
-    expect(chooseSurface({ forced: null, reducedMotion: false, webgl: false })).toBe('list');
+  it('forced list always wins; forced world still requires the home route', () => {
+    expect(chooseSurface({ ...base, forced: 'list' })).toBe('list');
+    expect(chooseSurface({ ...base, isHome: true, forced: 'world' })).toBe('world');
+    expect(chooseSurface({ ...base, isHome: false, forced: 'world' })).toBe('list'); // never hide the portfolio
   });
-
-  it('otherwise world', () => {
-    expect(chooseSurface({ forced: null, reducedMotion: false, webgl: true })).toBe('world');
+  it('reduced motion, no webgl, coarse pointer, or non-home => list', () => {
+    expect(chooseSurface({ ...base, reducedMotion: true })).toBe('list');
+    expect(chooseSurface({ ...base, webgl: false })).toBe('list');
+    expect(chooseSurface({ ...base, hasFinePointer: false })).toBe('list');
+    expect(chooseSurface({ ...base, isHome: false })).toBe('list');
   });
 });

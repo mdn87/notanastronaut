@@ -1,139 +1,103 @@
-import { WheelIntent } from '../core/intent';
-import { TravelMachine } from '../core/travel';
-import { Hud } from '../hud/hud';
-import { routeToIndex } from '../router';
+// src/world/wire.ts
+import { DartPhysics } from '../physics/dart';
+import { makeObstacleField } from '../core/field';
+import { aimDelta, DEFAULT_STEER } from '../core/control';
+import { FlightHud } from '../hud/flight-hud';
 import type { WorldScene } from './scene';
-import type { MountOpts, WorldCleanup } from './mount';
 
-const MAX_DT_SECONDS = 0.05;
-const TRANSIT_SECONDS = 1.5;
-const SWIPE_THRESHOLD_PX = 60;
+const MAX_DT = 0.05;
 
-export function wireWorld(scene: WorldScene, opts: MountOpts): WorldCleanup {
-  const { nodes, site, reducedMotion } = opts;
-  const transitDuration = reducedMotion ? 0 : TRANSIT_SECONDS;
-  const hud = new Hud(document.getElementById('hud-root')!, nodes, site);
-  const travel = new TravelMachine(nodes.length, {
-    transitDuration,
-  });
-  const wheel = new WheelIntent();
-  const canvas = scene.renderer.domElement;
-  let suppressHistoryPush = false;
+export async function wireWorld(scene: WorldScene, _opts: { reducedMotion: boolean }): Promise<() => void> {
+  const field = makeObstacleField(1981);
+  const dart = await DartPhysics.create({ bound: 720, boundPush: 220 }, field);
+  scene.setObstacles(field);
+  const hud = new FlightHud(document.getElementById('hud-root')!);
 
-  const depart = () => {
-    if (travel.state.kind === 'inTransit') {
-      hud.setTransit(travel.state.to);
-    }
-  };
-  const advance = () => {
-    if (travel.advance()) depart();
-  };
-  const back = () => {
-    if (travel.back()) depart();
-  };
-  const jumpTo = (index: number) => {
-    if (travel.jumpTo(index)) depart();
-  };
-  const settleTransitWithoutHistoryPush = () => {
-    if (travel.state.kind !== 'inTransit') return;
-    suppressHistoryPush = true;
-    try {
-      travel.tick(Number.POSITIVE_INFINITY);
-    } finally {
-      suppressHistoryPush = false;
-    }
-  };
-  const syncToCurrentRoute = () => {
-    const index = routeToIndex(location.pathname, nodes);
-    if (index === null) return;
-    settleTransitWithoutHistoryPush();
-    if (travel.state.kind === 'atNode' && travel.state.index === index) {
-      hud.setAtNode(index);
-      return;
-    }
-    jumpTo(index);
-  };
+  // Drag-to-fly: while the left button is held, the cursor's offset from where it
+  // was pressed steers like a flight stick — drag left -> nose left, drag up -> up.
+  let dragging = false, pressX = 0, pressY = 0, dragX = 0, dragY = 0;
+  let anchorYaw = 0, anchorPitch = 0; // facing captured when the drag began (aim is relative to it)
+  let rightHeld = false;            // right button -> forward thrust
+  const keys = new Set<string>();   // movement keys currently down
+  let rollEvent: -1 | 0 | 1 = 0; // set on a fresh A/D keydown, consumed next frame
 
-  const startIndex = routeToIndex(location.pathname, nodes) ?? 0;
-  if (startIndex !== 0) {
-    travel.jumpTo(startIndex);
-    travel.tick(transitDuration);
-  }
-  hud.setAtNode(startIndex);
+  const norm = (k: string) => (k.length === 1 ? k.toLowerCase() : k);
+  const has = (...k: string[]) => k.some((x) => keys.has(x));
+  const forward = () => (has('w', 'ArrowUp') ? 1 : 0) - (has('s', 'ArrowDown') ? 1 : 0);
+  const strafe = () => 0;
+  const boost = () => rightHeld;
 
-  const unlistenArrive = travel.onArrive((index) => {
-    if (index < 0) { hud.setOverview(); return; } // arrived at the galaxy overview
-    hud.setAtNode(index);
-    const route = nodes[index]?.route;
-    const nextUrl = route ? `${route}${location.search}` : null;
-    if (!suppressHistoryPush && nextUrl && `${location.pathname}${location.search}` !== nextUrl) {
-      history.pushState(null, '', nextUrl);
-    }
-  });
-
-  const onWheel = (event: WheelEvent) => {
-    const direction = wheel.feed(event.deltaY, performance.now());
-    if (direction > 0) advance();
-    else if (direction < 0) back();
+  const onPointerMove = (e: { clientX: number; clientY: number }) => {
+    if (dragging) { dragX = e.clientX - pressX; dragY = e.clientY - pressY; }
   };
-  addEventListener('wheel', onWheel, { passive: true });
-
-  const onKeydown = (event: KeyboardEvent) => {
-    if (event.key === 'ArrowDown' || event.key === 'PageDown') advance();
-    else if (event.key === 'ArrowUp' || event.key === 'PageUp') back();
+  const onPointerDown = (e: { button?: number; clientX: number; clientY: number }) => {
+    if ((e.button ?? 0) === 0) {
+      dragging = true; pressX = e.clientX; pressY = e.clientY; dragX = 0; dragY = 0;
+      const st = dart.state(); anchorYaw = st.yaw; anchorPitch = st.pitch; // aim relative to current facing
+    } else if (e.button === 2) rightHeld = true;
   };
-  addEventListener('keydown', onKeydown);
-
-  let touchStartY: number | null = null;
-  const onPointerdown = (event: PointerEvent) => {
-    if (event.pointerType === 'touch') touchStartY = event.clientY;
+  const onPointerUp = (e: { button?: number }) => {
+    if ((e.button ?? 0) === 0) { dragging = false; dragX = 0; dragY = 0; }
+    else if (e.button === 2) rightHeld = false;
   };
-  addEventListener('pointerdown', onPointerdown);
+  const onContextMenu = (e: { preventDefault?: () => void }) => e.preventDefault?.(); // right-click = thrust, no menu
 
-  const onPointerup = (event: PointerEvent) => {
-    if (event.pointerType !== 'touch' || touchStartY === null) return;
-    const deltaY = event.clientY - touchStartY;
-    touchStartY = null;
-    if (deltaY < -SWIPE_THRESHOLD_PX) advance();
-    else if (deltaY > SWIPE_THRESHOLD_PX) back();
+  const isMoveKey = (k: string) => ['w', 'a', 's', 'd', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(k);
+  const onKeyDown = (e: { key: string; repeat?: boolean; preventDefault?: () => void }) => {
+    const k = norm(e.key);
+    if (isMoveKey(k)) {
+      keys.add(k);
+      if (!e.repeat) {
+        if (k === 'a' || k === 'ArrowLeft') rollEvent = -1;
+        else if (k === 'd' || k === 'ArrowRight') rollEvent = 1;
+      }
+      e.preventDefault?.();
+    } else if (k === 'Escape' || k === 'l') location.href = `?mode=list`;
   };
-  addEventListener('pointerup', onPointerup);
+  const onKeyUp = (e: { key: string }) => { keys.delete(norm(e.key)); };
 
-  const onClick = (event: MouseEvent) => {
-    const index = scene.pickNode(event.clientX, event.clientY);
-    if (index !== null) jumpTo(index);
-  };
-  canvas.addEventListener('click', onClick);
+  addEventListener('pointermove', onPointerMove as unknown as EventListener);
+  addEventListener('pointerdown', onPointerDown as unknown as EventListener);
+  addEventListener('pointerup', onPointerUp as unknown as EventListener);
+  addEventListener('contextmenu', onContextMenu as unknown as EventListener);
+  addEventListener('keydown', onKeyDown as unknown as EventListener);
+  addEventListener('keyup', onKeyUp as unknown as EventListener);
 
-  const onPopstate = () => {
-    syncToCurrentRoute();
-  };
-  addEventListener('popstate', onPopstate);
-
-  let last = performance.now();
-  let frameId = 0;
-  let stopped = false;
+  let last = performance.now(), frameId = 0, stopped = false;
   const loop = (now: number) => {
     if (stopped) return;
-    const dt = Math.min(MAX_DT_SECONDS, Math.max(0, (now - last) / 1000));
+    const dt = Math.min(MAX_DT, Math.max(0, (now - last) / 1000));
     last = now;
-    travel.tick(dt);
-    scene.frame(dt, travel.state);
-    hud.setLabels(scene.labels());
+    // Aim-based steer: while dragging, ease the facing toward the drag target and
+    // STOP there (no perpetual spin). Deflection is deadzoned + capped, so a fast
+    // or far drag can't run away. Re-grip (release + drag again) to keep turning.
+    let yawDelta = 0, pitchDelta = 0;
+    if (dragging) {
+      const cur = dart.state();
+      const d = aimDelta(cur.yaw, cur.pitch, anchorYaw, anchorPitch, dragX, dragY, dt, DEFAULT_STEER);
+      yawDelta = d.yawDelta; pitchDelta = d.pitchDelta;
+    }
+    dart.step(dt, { yawDelta, pitchDelta, forward: forward(), strafe: strafe(), boost: boost(), roll: rollEvent });
+    rollEvent = 0; // consume the one-frame edge
+    const s = dart.state();
+    scene.frame(dt, s, dart.obstaclePositions());
+    hud.setSpeed(s.speed);
+    hud.setReadout(scene.readout());
     frameId = requestAnimationFrame(loop);
   };
   frameId = requestAnimationFrame(loop);
+
   return () => {
     if (stopped) return;
     stopped = true;
     cancelAnimationFrame(frameId);
-    removeEventListener('wheel', onWheel);
-    removeEventListener('keydown', onKeydown);
-    removeEventListener('pointerdown', onPointerdown);
-    removeEventListener('pointerup', onPointerup);
-    removeEventListener('popstate', onPopstate);
-    canvas.removeEventListener('click', onClick);
-    unlistenArrive();
+    removeEventListener('pointermove', onPointerMove as unknown as EventListener);
+    removeEventListener('pointerdown', onPointerDown as unknown as EventListener);
+    removeEventListener('pointerup', onPointerUp as unknown as EventListener);
+    removeEventListener('contextmenu', onContextMenu as unknown as EventListener);
+    removeEventListener('keydown', onKeyDown as unknown as EventListener);
+    removeEventListener('keyup', onKeyUp as unknown as EventListener);
     hud.dispose();
+    dart.dispose();
   };
 }

@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { NODES, SITE } from '../src/content/nodes';
 
 const mocks = vi.hoisted(() => {
   const scene = { dispose: vi.fn(), resize: vi.fn() };
@@ -89,7 +88,7 @@ describe('mountWorld', () => {
       throw new Error('webgl unavailable');
     });
 
-    await expect(mountWorld({ nodes: NODES, site: SITE, reducedMotion: false }))
+    await expect(mountWorld({ reducedMotion: false }))
       .rejects.toThrow('webgl unavailable');
 
     expect(body.children).toEqual([]);
@@ -98,7 +97,7 @@ describe('mountWorld', () => {
   it('returns an idempotent cleanup for canvas, listener, scene, and wiring', async () => {
     const { body, addEventListener, removeEventListener } = installFakeDom();
 
-    const cleanup = await mountWorld({ nodes: NODES, site: SITE, reducedMotion: false });
+    const cleanup = await mountWorld({ reducedMotion: false });
 
     expect(body.children).toHaveLength(1);
     expect(addEventListener).toHaveBeenCalledTimes(1);
@@ -119,7 +118,7 @@ describe('mountWorld', () => {
       throw new Error('wire failed');
     });
 
-    await expect(mountWorld({ nodes: NODES, site: SITE, reducedMotion: false }))
+    await expect(mountWorld({ reducedMotion: false }))
       .rejects.toThrow('wire failed');
 
     expect(body.children).toEqual([]);

@@ -6,11 +6,13 @@ import { gzipSync } from 'node:zlib';
 export const LIMITS = {
   fallback: 150_000,
   world: 250_000,
+  worldWasm: 585_000, // measured: 531 614 bytes gzip + ~10% headroom
   totalJsCss: 400_000,
   homepageMedia: 300_000,
 };
 
 const JS_CSS = new Set(['.js', '.css']);
+const WASM = new Set(['.wasm']);
 const MEDIA = new Set([
   '.avif',
   '.eot',
@@ -185,12 +187,37 @@ export function measureBudgets({ dist = join(process.cwd(), 'dist') } = {}) {
   const worldRoots = [...directDynamicImports(manifest, entryKeys)];
   const worldAssets = collectManifestAssets(manifest, worldRoots, { includeDynamic: true });
 
+  // Vite emits wasm files from node_modules as top-level manifest entries (no parent
+  // chunk lists them in `assets`). Attribute each such wasm to worldAssets when a JS
+  // chunk from the same npm package is already in worldAssets.
+  for (const [key, chunk] of Object.entries(manifest)) {
+    if (!key.endsWith('.wasm') || !chunk.file) continue;
+    if (worldAssets.has(chunk.file) || fallbackAssets.has(chunk.file)) continue;
+    // Derive the package prefix for this wasm (e.g. "node_modules/@dimforge/rapier3d/")
+    const nodeModulesIdx = key.indexOf('node_modules/');
+    if (nodeModulesIdx === -1) continue;
+    const afterNm = key.slice(nodeModulesIdx + 'node_modules/'.length);
+    const parts = afterNm.split('/');
+    const pkgName = parts[0]?.startsWith('@') ? parts.slice(0, 2).join('/') : parts[0];
+    const pkgPrefix = key.slice(0, nodeModulesIdx + 'node_modules/'.length) + pkgName + '/';
+    const pkgInWorld = [...worldAssets].some((f) => {
+      // Find any manifest chunk whose file is f and whose src is under pkgPrefix
+      return Object.values(manifest).some((c) => c.file === f && c.src?.startsWith(pkgPrefix));
+    });
+    if (pkgInWorld) worldAssets.add(chunk.file);
+  }
+
   let fallback = gzipBytes(homepage);
   let world = 0;
+  let worldWasm = 0;
   let totalJsCss = 0;
 
   for (const [name, size] of fileSizes) {
     const ext = extname(name);
+    if (WASM.has(ext)) {
+      if (worldAssets.has(name) && !fallbackAssets.has(name)) worldWasm += size;
+      continue;
+    }
     if (!JS_CSS.has(ext)) continue;
     totalJsCss += size;
     if (fallbackAssets.has(name)) fallback += size;
@@ -209,13 +236,14 @@ export function measureBudgets({ dist = join(process.cwd(), 'dist') } = {}) {
     homepageMedia += fileSizes.get(ref) ?? 0;
   }
 
-  return { fallback, world, totalJsCss, homepageMedia };
+  return { fallback, world, worldWasm, totalJsCss, homepageMedia };
 }
 
 export function budgetRows(sizes, limits = LIMITS) {
   return [
     ['fallback-first (homepage html + core JS/CSS)', sizes.fallback, limits.fallback, '<'],
     ['world chunk (three + world adapters)', sizes.world, limits.world, '<='],
+    ['world wasm (rapier)', sizes.worldWasm, limits.worldWasm, '<='],
     ['total JS+CSS', sizes.totalJsCss, limits.totalJsCss, '<='],
     ['homepage images+fonts', sizes.homepageMedia, limits.homepageMedia, '<='],
   ];

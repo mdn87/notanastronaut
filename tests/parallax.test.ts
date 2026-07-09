@@ -85,3 +85,24 @@ describe('parallax field', () => {
     expect(f.far).toHaveLength(500);
   });
 });
+
+// --- Task 4: volume depth-squares ---
+import { makeVolumeBodies } from '../src/core/parallax';
+
+describe('makeVolumeBodies', () => {
+  it('fills the flyable cube with variable-size bodies, deterministically', () => {
+    const a = makeVolumeBodies(5, { count: 120, extent: 200, minSize: 1, maxSize: 8 });
+    const b = makeVolumeBodies(5, { count: 120, extent: 200, minSize: 1, maxSize: 8 });
+    expect(a).toEqual(b);
+    expect(a).toHaveLength(120);
+    for (const body of a) {
+      expect(Math.abs(body.pos.x)).toBeLessThanOrEqual(200);
+      expect(Math.abs(body.pos.y)).toBeLessThanOrEqual(200);
+      expect(Math.abs(body.pos.z)).toBeLessThanOrEqual(200);
+      expect(body.size).toBeGreaterThanOrEqual(1);
+      expect(body.size).toBeLessThanOrEqual(8);
+    }
+    const sizes = new Set(a.map((b) => b.size));
+    expect(sizes.size).toBeGreaterThan(50);
+  });
+});

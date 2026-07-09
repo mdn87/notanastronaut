@@ -33,6 +33,31 @@ describe('budget checker', () => {
     tempDirs = [];
   });
 
+  it('counts a world-chunk .wasm asset in the worldWasm row', () => {
+    const dist = makeDist();
+    const files = {
+      'index.html': '<script type="module" src="/assets/index-a.js"></script>',
+      'assets/index-a.js': 'console.log("entry");',
+      'assets/chunk-alpha.js': 'console.log("world mount");',
+      'assets/physics.wasm': 'fake-wasm-bytes-fake-wasm-bytes-fake-wasm-bytes',
+    };
+    for (const [name, text] of Object.entries(files)) writeFile(dist, name, text);
+    writeFile(dist, '.vite/manifest.json', JSON.stringify({
+      'index.html': {
+        file: 'assets/index-a.js',
+        isEntry: true,
+        dynamicImports: ['src/world/mount.ts'],
+      },
+      'src/world/mount.ts': {
+        file: 'assets/chunk-alpha.js',
+        isDynamicEntry: true,
+        assets: ['assets/physics.wasm'],
+      },
+    }));
+
+    expect(measureBudgets({ dist }).worldWasm).toBe(gz(files['assets/physics.wasm']));
+  });
+
   it('uses the Vite manifest graph for world chunks instead of filename prefixes', () => {
     const dist = makeDist();
     const files = {
@@ -103,6 +128,83 @@ describe('budget checker', () => {
       'assets/font.woff2',
       'assets/paper.jpg',
     ]));
+  });
+
+  // Fix 1: covers the top-level wasm attribution path added in Task 5 for the case
+  // where Vite emits the wasm as a standalone manifest entry (NOT in any chunk's assets[]).
+  it('attributes a top-level node_modules wasm manifest entry to worldWasm when its package owns a world chunk', () => {
+    const dist = makeDist();
+    const wasmContent = 'fake-rapier-wasm-bytes-fake-rapier-wasm-bytes';
+    const files = {
+      'index.html': '<script type="module" src="/assets/index-a.js"></script>',
+      'assets/index-a.js': 'console.log("entry");',
+      'assets/mount-abc.js': 'console.log("world mount");',
+      'assets/rapier-xyz.js': 'console.log("rapier glue");',
+      // The wasm emitted by Vite as a top-level entry — NOT listed under any chunk's assets
+      'assets/rapier_wasm3d_bg-HASH.wasm': wasmContent,
+    };
+    for (const [name, text] of Object.entries(files)) writeFile(dist, name, text);
+    writeFile(dist, '.vite/manifest.json', JSON.stringify({
+      'index.html': {
+        file: 'assets/index-a.js',
+        isEntry: true,
+        dynamicImports: ['src/world/mount.ts'],
+      },
+      'src/world/mount.ts': {
+        file: 'assets/mount-abc.js',
+        isDynamicEntry: true,
+        imports: ['node_modules/@dimforge/rapier3d/rapier_wasm3d.js'],
+      },
+      // The rapier glue JS chunk — its src is under node_modules/@dimforge/rapier3d/
+      'node_modules/@dimforge/rapier3d/rapier_wasm3d.js': {
+        file: 'assets/rapier-xyz.js',
+        src: 'node_modules/@dimforge/rapier3d/rapier_wasm3d.js',
+        // Note: NO assets[] entry for the wasm here — Vite emits it as a top-level key instead
+      },
+      // Top-level wasm entry — the path Vite uses for node_modules wasm files
+      'node_modules/@dimforge/rapier3d/rapier_wasm3d_bg.wasm': {
+        file: 'assets/rapier_wasm3d_bg-HASH.wasm',
+      },
+    }));
+
+    const sizes = measureBudgets({ dist });
+    // The wasm must be counted in worldWasm
+    expect(sizes.worldWasm).toBe(gz(wasmContent));
+    // World JS (mount + rapier glue) must not include the wasm
+    expect(sizes.world).toBe(gz(files['assets/mount-abc.js']) + gz(files['assets/rapier-xyz.js']));
+  });
+
+  it('does NOT count a top-level wasm toward worldWasm when its package only appears in the fallback (entry) chunk', () => {
+    const dist = makeDist();
+    const wasmContent = 'fake-fallback-wasm-bytes-fake-fallback-wasm-bytes';
+    const files = {
+      'index.html': '<script type="module" src="/assets/index-a.js"></script>',
+      'assets/index-a.js': 'console.log("entry");',
+      'assets/somepkg-abc.js': 'console.log("fallback glue");',
+      // A wasm whose package (some-pkg) is ONLY reachable from the fallback entry, not world
+      'assets/somepkg-HASH.wasm': wasmContent,
+    };
+    for (const [name, text] of Object.entries(files)) writeFile(dist, name, text);
+    writeFile(dist, '.vite/manifest.json', JSON.stringify({
+      'index.html': {
+        file: 'assets/index-a.js',
+        isEntry: true,
+        imports: ['node_modules/some-pkg/index.js'],
+        // No dynamicImports — no world chunk
+      },
+      'node_modules/some-pkg/index.js': {
+        file: 'assets/somepkg-abc.js',
+        src: 'node_modules/some-pkg/index.js',
+      },
+      // Top-level wasm for some-pkg — its package is in fallback, not world
+      'node_modules/some-pkg/somepkg.wasm': {
+        file: 'assets/somepkg-HASH.wasm',
+      },
+    }));
+
+    const sizes = measureBudgets({ dist });
+    // The wasm must NOT be counted in worldWasm — its package only appears in the fallback
+    expect(sizes.worldWasm).toBe(0);
   });
 
   it('counts homepage media discovered from html, fallback css, and manifest assets', () => {

@@ -1,88 +1,68 @@
-import type { Vec3 } from './types';
+// src/core/galaxy.ts
 import { mulberry32 } from './rng';
 
-export type GalaxyKind = 'planet' | 'bubble' | 'cloud' | 'sparkle';
-export interface GalaxyPiece { kind: GalaxyKind; pos: Vec3; size: number; rot: number; spin: number; }
-export interface GalaxyArc { points: Vec3[]; }
-export interface GalaxyField { pieces: GalaxyPiece[]; arcs: GalaxyArc[]; }
-
-export interface GalaxyOpts {
-  bubbles?: number; sparkles?: number; clouds?: number; planets?: number; arcs?: number;
+export interface SpiralField {
+  positions: Float32Array; sizes: Float32Array; alphas: Float32Array; colors: Float32Array; count: number;
+}
+export interface SpiralOpts {
+  count?: number; arms?: number; radius?: number; thickness?: number; twist?: number; coreFraction?: number;
 }
 
-const Z_MIN = -40, Z_MAX = 190, X_MAX = 70, Y_MAX = 38;
-const CLEAR_BIG = 12, CLEAR_SMALL = 5; // keep the flight corridor from being blocked
-const MAX = 600;
-const KINDS: GalaxyKind[] = ['bubble', 'sparkle', 'cloud', 'planet'];
+export const GALAXY_MAX_POINTS = 40000;
 
-const clampCount = (v: number | undefined, d: number): number =>
-  v === undefined || !Number.isFinite(v) ? d : Math.min(MAX, Math.max(0, Math.floor(v)));
+// Brand cyan (arms) -> deep navy (core).
+const CYAN = { r: 0x4a / 255, g: 0xb3 / 255, b: 0xd4 / 255 };
+const NAVY = { r: 0x16 / 255, g: 0x32 / 255, b: 0x4a / 255 };
 
 /**
- * Deterministic field of simple line-art doodles (bubbles, sparkles, clouds, a
- * few planet outlines) plus gentle line arcs, sparsely scattered through the 3D
- * volume around the corridor so they parallax as the camera moves. The sparse,
- * airy count recaptures the original site's charm. Pure: no Math.random, no three.
+ * Dark-stardust spiral galaxy as point arrays for a BufferGeometry. A flattened
+ * logarithmic-spiral disk (N arms) plus a dense core bulge; per-point size/alpha
+ * scale with "coreness" so density paints the spiral on white. Pure + seeded.
  */
-export function makeGalaxy(seed: number, opts: GalaxyOpts = {}): GalaxyField {
+export function makeSpiralGalaxy(seed: number, opts: SpiralOpts = {}): SpiralField {
+  const count = Math.min(GALAXY_MAX_POINTS, Math.max(0, Math.floor(opts.count ?? 22000)));
+  const arms = Math.max(1, Math.floor(opts.arms ?? 2));
+  const radius = opts.radius ?? 200;
+  const thickness = opts.thickness ?? 10;
+  const twist = opts.twist ?? 2.4;
+  const coreFraction = opts.coreFraction ?? 0.16;
   const rnd = mulberry32(seed);
-  const pieces: GalaxyPiece[] = [];
-  const arcs: GalaxyArc[] = [];
-
-  const want: Record<GalaxyKind, number> = {
-    bubble: clampCount(opts.bubbles, 14),
-    sparkle: clampCount(opts.sparkles, 16),
-    cloud: clampCount(opts.clouds, 6),
-    planet: clampCount(opts.planets, 5),
+  const gauss = () => {
+    let u = 0, v = 0;
+    while (u === 0) u = rnd();
+    while (v === 0) v = rnd();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
   };
 
-  const sizeFor = (kind: GalaxyKind): number => {
-    if (kind === 'bubble') return 0.6 + rnd() * 2.2;
-    if (kind === 'sparkle') return 0.5 + rnd() * 1.3;
-    if (kind === 'cloud') return 2.4 + rnd() * 3.2;
-    return 2.6 + rnd() * 3.4; // planet outline
-  };
-  const clearFor = (kind: GalaxyKind): number => (kind === 'bubble' || kind === 'sparkle' ? CLEAR_SMALL : CLEAR_BIG);
+  const positions = new Float32Array(count * 3);
+  const sizes = new Float32Array(count);
+  const alphas = new Float32Array(count);
+  const colors = new Float32Array(count * 3);
 
-  for (const kind of KINDS) {
-    let made = 0;
-    let guard = 0;
-    while (made < want[kind] && guard++ < want[kind] * 20 + 20) {
-      const pos = {
-        x: (rnd() * 2 - 1) * X_MAX,
-        y: (rnd() * 2 - 1) * Y_MAX,
-        z: Z_MIN + rnd() * (Z_MAX - Z_MIN),
-      };
-      const size = sizeFor(kind); // consume RNG regardless so layout stays stable
-      const rot = (rnd() * 2 - 1) * Math.PI;
-      const spin = (rnd() * 2 - 1) * 0.3;
-      if (Math.hypot(pos.x, pos.y) < clearFor(kind)) continue;
-      pieces.push({ kind, pos, size, rot, spin });
-      made++;
+  for (let i = 0; i < count; i++) {
+    const core = rnd() < coreFraction;
+    let r: number, theta: number, y: number, coreness: number;
+    if (core) {
+      r = radius * 0.18 * Math.pow(rnd(), 0.6);
+      theta = rnd() * Math.PI * 2;
+      y = gauss() * thickness * 1.6;
+      coreness = 1 - r / (radius * 0.18);
+    } else {
+      r = radius * (0.08 + 0.92 * Math.pow(rnd(), 0.5));
+      const base = Math.floor(rnd() * arms) * ((Math.PI * 2) / arms);
+      theta = base + twist * Math.log(1 + (r / radius) * 8) + gauss() * 0.18;
+      y = gauss() * thickness * (1 - 0.5 * (r / radius));
+      coreness = Math.max(0, 1 - r / radius);
     }
+    positions[i * 3] = Math.cos(theta) * r;
+    positions[i * 3 + 1] = y;
+    positions[i * 3 + 2] = Math.sin(theta) * r;
+    sizes[i] = 0.8 + 1.6 * coreness + rnd() * 0.5;
+    alphas[i] = Math.min(1, 0.12 + 0.34 * coreness + rnd() * 0.05);
+    const m = coreness * coreness;
+    colors[i * 3] = CYAN.r + (NAVY.r - CYAN.r) * m;
+    colors[i * 3 + 1] = CYAN.g + (NAVY.g - CYAN.g) * m;
+    colors[i * 3 + 2] = CYAN.b + (NAVY.b - CYAN.b) * m;
   }
-
-  const arcCount = clampCount(opts.arcs, 5);
-  for (let i = 0; i < arcCount; i++) {
-    const cx = (rnd() * 2 - 1) * X_MAX, cy = (rnd() * 2 - 1) * Y_MAX, cz = Z_MIN + rnd() * (Z_MAX - Z_MIN);
-    const len = 20 + rnd() * 40;
-    const dirAngle = rnd() * Math.PI * 2;
-    const dx = Math.cos(dirAngle), dz = Math.sin(dirAngle);
-    const amp = 3 + rnd() * 7, phase = rnd() * Math.PI * 2, waves = 1 + rnd() * 2;
-    const points: Vec3[] = [];
-    const N = 16;
-    for (let k = 0; k <= N; k++) {
-      const t = k / N;
-      const along = (t - 0.5) * len;
-      const off = Math.sin(phase + t * Math.PI * 2 * waves) * amp;
-      points.push({
-        x: cx + dx * along + (-dz) * off,
-        y: cy + (rnd() * 2 - 1) * 1.5,
-        z: cz + dz * along + dx * off,
-      });
-    }
-    arcs.push({ points });
-  }
-
-  return { pieces, arcs };
+  return { positions, sizes, alphas, colors, count };
 }

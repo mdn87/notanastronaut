@@ -1,13 +1,16 @@
 import { NODES, SITE } from './content/nodes';
 import { renderListPage } from './fallback/render';
-import { chooseSurface, detectWebgl, type Surface } from './router';
+import { chooseSurface, detectWebgl, detectFinePointer, type Surface } from './router';
 
 const content = document.getElementById('content')!;
 
 const params = new URLSearchParams(location.search);
 const forced = (['world', 'list'] as const).find((m) => params.get('mode') === m) ?? null;
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const surface: Surface = chooseSurface({ forced, reducedMotion, webgl: detectWebgl() });
+const isHome = location.pathname === '/' || location.pathname === '';
+const surface: Surface = chooseSurface({
+  forced, reducedMotion, webgl: detectWebgl(), hasFinePointer: detectFinePointer(), isHome,
+});
 
 // Dev parity: prerender fills #content in prod; fill it live in dev.
 if (!content.querySelector('section')) {
@@ -19,9 +22,7 @@ document.body.dataset.mode = surface;
 if (surface === 'world') {
   content.setAttribute('hidden', '');
   import('./world/mount')
-    .then(({ mountWorld }) =>
-      mountWorld({ nodes: NODES, site: SITE, reducedMotion }),
-    )
+    .then(({ mountWorld }) => mountWorld({ reducedMotion }))
     .catch((err) => {
       console.error('world failed to boot - switching to ground control', err);
       content.removeAttribute('hidden');
