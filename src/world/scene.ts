@@ -74,6 +74,54 @@ function setAttrs(geom: THREE.BufferGeometry, pos: Float32Array, size: Float32Ar
   geom.setAttribute('aColor', new THREE.BufferAttribute(color, 3));
 }
 
+export interface ActiveStarBufferState {
+  indices: Int32Array;
+  positions: Float32Array;
+  sizes: Float32Array;
+  alphas: Float32Array;
+  colors: Float32Array;
+  displayAlphas: Float32Array;
+  baseChanged: boolean;
+}
+
+export function syncActiveStarBuffers(
+  active: ActiveStarSnapshot,
+  field: SpiralField,
+  baseAlphas: Float32Array,
+  state: ActiveStarBufferState,
+): number {
+  let activeCount = 0;
+  state.baseChanged = false;
+  for (let i = 0; i < state.indices.length; i++) {
+    const previous = state.indices[i]!;
+    const next = active.starIndices[i]!;
+    if (previous !== next) {
+      if (previous >= 0) state.displayAlphas[previous] = baseAlphas[previous]!;
+      if (next >= 0) state.displayAlphas[next] = 0;
+      state.indices[i] = next;
+      state.baseChanged = true;
+    }
+
+    const offset = i * 3;
+    if (next >= 0) {
+      const sourceOffset = next * 3;
+      activeCount++;
+      state.positions[offset] = active.positions[offset]!;
+      state.positions[offset + 1] = active.positions[offset + 1]!;
+      state.positions[offset + 2] = active.positions[offset + 2]!;
+      state.sizes[i] = field.sizes[next]!;
+      state.alphas[i] = active.alphas[i]!;
+      state.colors[offset] = field.colors[sourceOffset]!;
+      state.colors[offset + 1] = field.colors[sourceOffset + 1]!;
+      state.colors[offset + 2] = field.colors[sourceOffset + 2]!;
+    } else {
+      state.sizes[i] = 0;
+      state.alphas[i] = 0;
+    }
+  }
+  return activeCount;
+}
+
 export class WorldScene {
   readonly renderer: THREE.WebGLRenderer;
   readonly galaxyField: SpiralField;
@@ -81,6 +129,7 @@ export class WorldScene {
   private readonly camera: THREE.PerspectiveCamera;
   private readonly galaxy: THREE.Points;
   private readonly baseGalaxyAlphas: Float32Array;
+  private readonly galaxyDisplayAlphas: Float32Array;
   private readonly baseGalaxyAlphaAttr: THREE.BufferAttribute;
   private readonly activePoints: THREE.Points;
   private readonly activeIndices = new Int32Array(96).fill(-1);
@@ -88,6 +137,7 @@ export class WorldScene {
   private readonly activeSize = new Float32Array(96);
   private readonly activeAlpha = new Float32Array(96);
   private readonly activeColor = new Float32Array(288);
+  private readonly activeBufferState: ActiveStarBufferState;
   private readonly activePositionAttr: THREE.BufferAttribute;
   private readonly activeSizeAttr: THREE.BufferAttribute;
   private readonly activeAlphaAttr: THREE.BufferAttribute;
@@ -112,8 +162,9 @@ export class WorldScene {
     // Galaxy (round points, no distance fade).
     this.galaxyField = makeSpiralGalaxy(seed, { radius: GALAXY_RADIUS, thickness: 30, count: 30000 });
     this.baseGalaxyAlphas = this.galaxyField.alphas.slice();
+    this.galaxyDisplayAlphas = this.galaxyField.alphas.slice();
     const gg = new THREE.BufferGeometry();
-    setAttrs(gg, this.galaxyField.positions, this.galaxyField.sizes, this.galaxyField.alphas, this.galaxyField.colors);
+    setAttrs(gg, this.galaxyField.positions, this.galaxyField.sizes, this.galaxyDisplayAlphas, this.galaxyField.colors);
     this.baseGalaxyAlphaAttr = gg.getAttribute('aAlpha') as THREE.BufferAttribute;
     const galaxyMat = pointsMaterial(false);
     galaxyMat.uniforms.uFade!.value = 0; // galaxy never fades by distance
@@ -126,6 +177,15 @@ export class WorldScene {
     this.activeSizeAttr = activeGeom.getAttribute('aSize') as THREE.BufferAttribute;
     this.activeAlphaAttr = activeGeom.getAttribute('aAlpha') as THREE.BufferAttribute;
     this.activeColorAttr = activeGeom.getAttribute('aColor') as THREE.BufferAttribute;
+    this.activeBufferState = {
+      indices: this.activeIndices,
+      positions: this.activePos,
+      sizes: this.activeSize,
+      alphas: this.activeAlpha,
+      colors: this.activeColor,
+      displayAlphas: this.galaxyDisplayAlphas,
+      baseChanged: false,
+    };
     const activeMat = pointsMaterial(false);
     activeMat.uniforms.uFade!.value = 0;
     this.activePoints = new THREE.Points(activeGeom, activeMat);
@@ -226,36 +286,13 @@ export class WorldScene {
   }
 
   private syncActiveStars(active: ActiveStarSnapshot): number {
-    let activeCount = 0;
-    let baseChanged = false;
-    for (let i = 0; i < this.activeIndices.length; i++) {
-      const previous = this.activeIndices[i]!;
-      const next = active.starIndices[i]!;
-      if (previous !== next) {
-        if (previous >= 0) this.galaxyField.alphas[previous] = this.baseGalaxyAlphas[previous]!;
-        if (next >= 0) this.galaxyField.alphas[next] = 0;
-        this.activeIndices[i] = next;
-        baseChanged = true;
-      }
-
-      const offset = i * 3;
-      if (next >= 0) {
-        const sourceOffset = next * 3;
-        activeCount++;
-        this.activePos[offset] = active.positions[offset]!;
-        this.activePos[offset + 1] = active.positions[offset + 1]!;
-        this.activePos[offset + 2] = active.positions[offset + 2]!;
-        this.activeSize[i] = this.galaxyField.sizes[next]!;
-        this.activeAlpha[i] = active.alphas[i]!;
-        this.activeColor[offset] = this.galaxyField.colors[sourceOffset]!;
-        this.activeColor[offset + 1] = this.galaxyField.colors[sourceOffset + 1]!;
-        this.activeColor[offset + 2] = this.galaxyField.colors[sourceOffset + 2]!;
-      } else {
-        this.activeSize[i] = 0;
-        this.activeAlpha[i] = 0;
-      }
-    }
-    if (baseChanged) this.baseGalaxyAlphaAttr.needsUpdate = true;
+    const activeCount = syncActiveStarBuffers(
+      active,
+      this.galaxyField,
+      this.baseGalaxyAlphas,
+      this.activeBufferState,
+    );
+    if (this.activeBufferState.baseChanged) this.baseGalaxyAlphaAttr.needsUpdate = true;
     this.activePositionAttr.needsUpdate = true;
     this.activeSizeAttr.needsUpdate = true;
     this.activeAlphaAttr.needsUpdate = true;
