@@ -2,22 +2,19 @@
 import * as THREE from 'three';
 import type { FlightState } from '../core/flight-types';
 import type { Vec3 } from '../core/types';
-import type { ObstacleSpec } from '../core/field';
-import { makeSpiralGalaxy } from '../core/galaxy';
+import { makeSpiralGalaxy, type SpiralField } from '../core/galaxy';
 import { makeGridLines } from '../core/grid';
 import { makeVolumeBodies } from '../core/parallax';
+import type { ActiveStarSnapshot } from '../physics/star-collisions';
+import { ThrusterView } from './thruster';
 
-// galaxy-thruster.svg lives in public/ — reference it by URL, never `import` it.
-const THRUSTER_URL = '/artwork/galaxy/galaxy-thruster.svg';
 const BG = 0xffffff;
-const THRUSTER_ASPECT = 80 / 120;
 const ARROW_LEN = 3.6;
 // Chase cam: CAM_TURN is how fast the trail eases toward the facing (low = the
 // camera barely swings when you look); CAM_LOOK_LAG keeps the avatar centered.
 const CAM_BACK = 11, CAM_UP = 3.4, CAM_LAG = 5, CAM_LOOK_LAG = 12, CAM_TURN = 2;
 const CAM_PITCH_MAX = 0.5; // cap the trail's elevation (rad ≈ 29°) so a steep climb/dive never swings the camera near vertical (which would flip the lookAt up-vector)
 const FORWARD = new THREE.Vector3(0, 0, 1);
-const GALAXY_SPIN = 0.015; // rad/s, top-down (about y)
 const EXTENT = 700;        // vast, explorable galaxy — matches the flight soft-bound
 const GALAXY_RADIUS = 700;
 
@@ -79,20 +76,31 @@ function setAttrs(geom: THREE.BufferGeometry, pos: Float32Array, size: Float32Ar
 
 export class WorldScene {
   readonly renderer: THREE.WebGLRenderer;
+  readonly galaxyField: SpiralField;
   private readonly scene = new THREE.Scene();
   private readonly camera: THREE.PerspectiveCamera;
   private readonly galaxy: THREE.Points;
+  private readonly baseGalaxyAlphas: Float32Array;
+  private readonly baseGalaxyAlphaAttr: THREE.BufferAttribute;
+  private readonly activePoints: THREE.Points;
+  private readonly activeIndices = new Int32Array(96).fill(-1);
+  private readonly activePos = new Float32Array(288);
+  private readonly activeSize = new Float32Array(96);
+  private readonly activeAlpha = new Float32Array(96);
+  private readonly activeColor = new Float32Array(288);
+  private readonly activePositionAttr: THREE.BufferAttribute;
+  private readonly activeSizeAttr: THREE.BufferAttribute;
+  private readonly activeAlphaAttr: THREE.BufferAttribute;
+  private readonly activeColorAttr: THREE.BufferAttribute;
   private readonly grid: THREE.LineSegments;
   private readonly squares: THREE.Points;
   private readonly avatar: THREE.Object3D;
-  private readonly thruster: THREE.Sprite;
+  private readonly thruster: ThrusterView;
   private readonly camDir = new THREE.Vector3(0, 0, 1);
   private readonly gridMat: THREE.ShaderMaterial;
   private readonly squareMat: THREE.ShaderMaterial;
   private readonly camPos = new THREE.Vector3(0, CAM_UP, -CAM_BACK);
   private readonly lookAt = new THREE.Vector3(0, 0, 0);
-  private obstacles: THREE.Points | null = null;
-  private obstaclePos: Float32Array | null = null;
 
   constructor(canvas: HTMLCanvasElement, opts: { seed?: number } = {}) {
     const seed = opts.seed ?? 1981;
@@ -102,13 +110,27 @@ export class WorldScene {
     this.camera = new THREE.PerspectiveCamera(60, 1, 0.3, 4000);
 
     // Galaxy (round points, no distance fade).
-    const gf = makeSpiralGalaxy(seed, { radius: GALAXY_RADIUS, thickness: 30, count: 30000 });
+    this.galaxyField = makeSpiralGalaxy(seed, { radius: GALAXY_RADIUS, thickness: 30, count: 30000 });
+    this.baseGalaxyAlphas = this.galaxyField.alphas.slice();
     const gg = new THREE.BufferGeometry();
-    setAttrs(gg, gf.positions, gf.sizes, gf.alphas, gf.colors);
+    setAttrs(gg, this.galaxyField.positions, this.galaxyField.sizes, this.galaxyField.alphas, this.galaxyField.colors);
+    this.baseGalaxyAlphaAttr = gg.getAttribute('aAlpha') as THREE.BufferAttribute;
     const galaxyMat = pointsMaterial(false);
     galaxyMat.uniforms.uFade!.value = 0; // galaxy never fades by distance
     this.galaxy = new THREE.Points(gg, galaxyMat);
     this.scene.add(this.galaxy);
+
+    const activeGeom = new THREE.BufferGeometry();
+    setAttrs(activeGeom, this.activePos, this.activeSize, this.activeAlpha, this.activeColor);
+    this.activePositionAttr = activeGeom.getAttribute('position') as THREE.BufferAttribute;
+    this.activeSizeAttr = activeGeom.getAttribute('aSize') as THREE.BufferAttribute;
+    this.activeAlphaAttr = activeGeom.getAttribute('aAlpha') as THREE.BufferAttribute;
+    this.activeColorAttr = activeGeom.getAttribute('aColor') as THREE.BufferAttribute;
+    const activeMat = pointsMaterial(false);
+    activeMat.uniforms.uFade!.value = 0;
+    this.activePoints = new THREE.Points(activeGeom, activeMat);
+    this.activePoints.frustumCulled = false;
+    this.scene.add(this.activePoints);
 
     // 3D grid as a fading line lattice — a clear spatial reference / motion cue,
     // unmistakable against the point stars.
@@ -148,33 +170,10 @@ export class WorldScene {
     this.avatar = arrow;
     this.scene.add(this.avatar);
 
-    const tTex = new THREE.TextureLoader().load(THRUSTER_URL); tTex.colorSpace = THREE.SRGBColorSpace;
-    this.thruster = new THREE.Sprite(new THREE.SpriteMaterial({ map: tTex, transparent: true, depthWrite: false, depthTest: false, opacity: 0 }));
-    this.thruster.renderOrder = 9; this.thruster.visible = false;
-    this.scene.add(this.thruster);
+    this.thruster = new ThrusterView(seed);
+    this.scene.add(this.thruster.points);
 
     this.resize();
-  }
-
-  /** Build the dynamic-obstacle dot cloud. Positions update each frame; size and
-   *  color (denser = darker) are fixed from the spec. */
-  setObstacles(specs: ObstacleSpec[]): void {
-    const n = specs.length;
-    if (n === 0) return;
-    const pos = new Float32Array(n * 3), size = new Float32Array(n), alpha = new Float32Array(n), color = new Float32Array(n * 3);
-    specs.forEach((s, i) => {
-      pos[i * 3] = s.pos.x; pos[i * 3 + 1] = s.pos.y; pos[i * 3 + 2] = s.pos.z;
-      size[i] = s.radius;
-      alpha[i] = 0.9;
-      color[i * 3] = s.color.r; color[i * 3 + 1] = s.color.g; color[i * 3 + 2] = s.color.b;
-    });
-    const geom = new THREE.BufferGeometry();
-    setAttrs(geom, pos, size, alpha, color);
-    const mat = pointsMaterial(false);
-    mat.uniforms.uFade!.value = 0; // obstacles never distance-fade (you must see them to dodge)
-    this.obstacles = new THREE.Points(geom, mat);
-    this.scene.add(this.obstacles);
-    this.obstaclePos = pos;
   }
 
   resize(): void {
@@ -185,7 +184,7 @@ export class WorldScene {
     this.camera.updateProjectionMatrix();
   }
 
-  frame(dt: number, flight: FlightState, obstaclePositions?: Float32Array): void {
+  frame(dt: number, flight: FlightState, active: ActiveStarSnapshot, galaxyAngle: number): void {
     const pos = v(flight.position);
     const head = v(flight.heading).normalize();
 
@@ -211,31 +210,57 @@ export class WorldScene {
     this.avatar.quaternion.setFromUnitVectors(FORWARD, head);
     this.avatar.rotateZ(flight.bank);
 
-    // Rear thruster fires on forward thrust.
-    const thrust = flight.throttle;
-    if (flight.surge > 0.02 && thrust > 0.02) {
-      const flameH = 1.8 * (0.45 + 0.9 * thrust);
-      this.thruster.scale.set(flameH * THRUSTER_ASPECT, flameH, 1);
-      this.thruster.position.copy(pos).addScaledVector(head, -(ARROW_LEN * 0.55 + flameH * 0.4));
-      this.thruster.material.opacity = 0.4 + 0.55 * thrust;
-      this.thruster.visible = true;
-    } else {
-      this.thruster.visible = false;
-    }
-
-    // Galaxy turns slowly; grid/squares fade around the avatar.
-    this.galaxy.rotation.y += dt * GALAXY_SPIN;
+    // Galaxy turns with the same angle used by collision indexing; grid/squares
+    // fade around the avatar.
+    this.galaxy.rotation.y = galaxyAngle;
     this.gridMat.uniforms.uAvatar!.value.copy(pos);
     this.squareMat.uniforms.uAvatar!.value.copy(pos);
-
-    // Obstacles move when hit — stream live positions into the cloud.
-    if (this.obstacles && this.obstaclePos && obstaclePositions) {
-      const n = Math.min(obstaclePositions.length, this.obstaclePos.length);
-      this.obstaclePos.set(obstaclePositions.subarray(0, n)); // flat copy, no allocation; capped to the render buffer
-      (this.obstacles.geometry.getAttribute('position') as THREE.BufferAttribute).needsUpdate = true;
-    }
+    this.thruster.frame(dt, flight, ARROW_LEN * 0.55);
+    const activeCount = this.syncActiveStars(active);
 
     this.renderer.render(this.scene, this.camera);
+    const dataset = this.renderer.domElement.dataset;
+    dataset.activeStars = String(activeCount);
+    dataset.starHits = String(active.hitCount);
+    dataset.thrusterParticles = String(this.thruster.aliveCount);
+  }
+
+  private syncActiveStars(active: ActiveStarSnapshot): number {
+    let activeCount = 0;
+    let baseChanged = false;
+    for (let i = 0; i < this.activeIndices.length; i++) {
+      const previous = this.activeIndices[i]!;
+      const next = active.starIndices[i]!;
+      if (previous !== next) {
+        if (previous >= 0) this.galaxyField.alphas[previous] = this.baseGalaxyAlphas[previous]!;
+        if (next >= 0) this.galaxyField.alphas[next] = 0;
+        this.activeIndices[i] = next;
+        baseChanged = true;
+      }
+
+      const offset = i * 3;
+      if (next >= 0) {
+        const sourceOffset = next * 3;
+        activeCount++;
+        this.activePos[offset] = active.positions[offset]!;
+        this.activePos[offset + 1] = active.positions[offset + 1]!;
+        this.activePos[offset + 2] = active.positions[offset + 2]!;
+        this.activeSize[i] = this.galaxyField.sizes[next]!;
+        this.activeAlpha[i] = active.alphas[i]!;
+        this.activeColor[offset] = this.galaxyField.colors[sourceOffset]!;
+        this.activeColor[offset + 1] = this.galaxyField.colors[sourceOffset + 1]!;
+        this.activeColor[offset + 2] = this.galaxyField.colors[sourceOffset + 2]!;
+      } else {
+        this.activeSize[i] = 0;
+        this.activeAlpha[i] = 0;
+      }
+    }
+    if (baseChanged) this.baseGalaxyAlphaAttr.needsUpdate = true;
+    this.activePositionAttr.needsUpdate = true;
+    this.activeSizeAttr.needsUpdate = true;
+    this.activeAlphaAttr.needsUpdate = true;
+    this.activeColorAttr.needsUpdate = true;
+    return activeCount;
   }
 
   /** Avatar's screen position + world coords, for the floating position readout. */
