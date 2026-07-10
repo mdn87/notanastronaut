@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import type { SpiralField } from '../src/core/galaxy';
 import { StarCollisions } from '../src/physics/star-collisions';
 
@@ -121,17 +121,53 @@ describe('StarCollisions', () => {
       ship,
     );
     const stars = new StarCollisions(RAPIER, world, shipCollider.handle, field(0.2), { capacity: 1 });
+    stars.prepare({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 32 }, 0);
+    const translation = vi.spyOn(RAPIER.RigidBody.prototype, 'translation');
     try {
-      stars.prepare({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 32 }, 0);
       const first = stars.snapshot();
       expect(stars.snapshot()).toBe(first);
       expect(stars.snapshot().starIndices[0]).toBe(0);
       expect(stars.snapshot().hitCount).toBe(0);
       stars.prepare({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 32 }, 0);
       expect(stars.snapshot().starIndices[0]).toBe(0);
+      expect(translation).not.toHaveBeenCalled();
     } finally {
+      translation.mockRestore();
       stars.dispose();
       world.free();
+    }
+  });
+
+  it('does not read Rapier translations for repeated scattered snapshots', () => {
+    const s = scenario(0.2);
+    const translation = vi.spyOn(RAPIER.RigidBody.prototype, 'translation');
+    try {
+      s.stars.snapshot();
+      s.stars.snapshot();
+      expect(translation).not.toHaveBeenCalled();
+    } finally {
+      translation.mockRestore();
+      s.stars.dispose();
+      s.world.free();
+    }
+  });
+
+  it('advances and fades a scattered star after disabling its physics body', () => {
+    const s = scenario(0.2);
+    const poolBody = s.world.bodies.getAll().find((body) => body.handle !== s.ship.handle)!;
+    try {
+      const first = s.stars.snapshot();
+      const firstZ = first.positions[2]!;
+      const firstAlpha = first.alphas[0]!;
+      expect(poolBody.isEnabled()).toBe(false);
+      for (let i = 0; i < 96; i++) s.stars.afterStep(1 / 120, s.ship.translation());
+      const second = s.stars.snapshot();
+      expect(second.positions[2]).toBeGreaterThan(firstZ);
+      expect(second.alphas[0]).toBeGreaterThan(0);
+      expect(second.alphas[0]).toBeLessThan(firstAlpha);
+    } finally {
+      s.stars.dispose();
+      s.world.free();
     }
   });
 

@@ -23,6 +23,14 @@ interface Slot {
   anchorX: number;
   anchorY: number;
   anchorZ: number;
+  x: number;
+  y: number;
+  z: number;
+  vx: number;
+  vy: number;
+  vz: number;
+  pendingHit: boolean;
+  waitForImpact: boolean;
 }
 
 const ACTIVE_RADIUS = 35;
@@ -30,6 +38,7 @@ const RELEASE_RADIUS = 55;
 const RELEASE_RADIUS_SQ = RELEASE_RADIUS * RELEASE_RADIUS;
 const HOLD = 0.9;
 const FADE = 0.6;
+const LINEAR_DAMPING = 0.25;
 
 const rotateYInto = (p: Vec3, angle: number, out: Vec3): Vec3 => {
   const c = Math.cos(angle), s = Math.sin(angle);
@@ -62,10 +71,9 @@ export class StarCollisions {
     const slotIndex = this.colliderSlots.get(starHandle);
     if (slotIndex === undefined) return;
     const slot = this.slots[slotIndex]!;
-    if (slot.phase === 'armed') {
-      slot.phase = 'scattered';
-      slot.age = 0;
-      this.out.hitCount++;
+    if (slot.phase === 'armed' && !slot.pendingHit) {
+      slot.pendingHit = true;
+      slot.waitForImpact = true;
     }
   };
 
@@ -87,7 +95,7 @@ export class StarCollisions {
     };
     for (let i = 0; i < capacity; i++) {
       const body = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic()
-        .setLinearDamping(0.25)
+        .setLinearDamping(LINEAR_DAMPING)
         .lockRotations()
         .setAdditionalMass(1));
       const collider = world.createCollider(RAPIER.ColliderDesc.ball(1)
@@ -105,6 +113,14 @@ export class StarCollisions {
         anchorX: 0,
         anchorY: 0,
         anchorZ: 0,
+        x: 0,
+        y: 0,
+        z: 0,
+        vx: 0,
+        vy: 0,
+        vz: 0,
+        pendingHit: false,
+        waitForImpact: false,
       });
       this.colliderSlots.set(collider.handle, i);
     }
@@ -137,6 +153,14 @@ export class StarCollisions {
       slot.anchorX = this.worldStar.x;
       slot.anchorY = this.worldStar.y;
       slot.anchorZ = this.worldStar.z;
+      slot.x = this.worldStar.x;
+      slot.y = this.worldStar.y;
+      slot.z = this.worldStar.z;
+      slot.vx = 0;
+      slot.vy = 0;
+      slot.vz = 0;
+      slot.pendingHit = false;
+      slot.waitForImpact = false;
       slot.body.setEnabled(true);
       slot.body.setTranslation(this.worldStar, true);
       slot.body.setLinvel(this.zero, true);
@@ -151,11 +175,27 @@ export class StarCollisions {
     for (let i = 0; i < this.slots.length; i++) {
       const slot = this.slots[i]!;
       if (slot.phase === 'armed') {
+        if (slot.pendingHit) {
+          if (slot.waitForImpact) {
+            slot.waitForImpact = false;
+          } else {
+            this.scatter(slot);
+          }
+          continue;
+        }
         const dx = slot.anchorX - shipPosition.x;
         const dy = slot.anchorY - shipPosition.y;
         const dz = slot.anchorZ - shipPosition.z;
         if (dx * dx + dy * dy + dz * dz > RELEASE_RADIUS_SQ) this.release(slot);
       } else if (slot.phase === 'scattered') {
+        const decay = Math.exp(-LINEAR_DAMPING * dt);
+        const travel = (1 - decay) / LINEAR_DAMPING;
+        slot.x += slot.vx * travel;
+        slot.y += slot.vy * travel;
+        slot.z += slot.vz * travel;
+        slot.vx *= decay;
+        slot.vy *= decay;
+        slot.vz *= decay;
         slot.age += dt;
         if (slot.age >= HOLD + FADE) this.release(slot);
       }
@@ -187,8 +227,27 @@ export class StarCollisions {
     slot.starIndex = -1;
     slot.phase = 'free';
     slot.age = 0;
+    slot.pendingHit = false;
+    slot.waitForImpact = false;
     slot.body.setLinvel(this.zero, false);
     slot.body.setEnabled(false);
+  }
+
+  private scatter(slot: Slot): void {
+    const position = slot.body.translation();
+    const velocity = slot.body.linvel();
+    slot.x = position.x;
+    slot.y = position.y;
+    slot.z = position.z;
+    slot.vx = velocity.x;
+    slot.vy = velocity.y;
+    slot.vz = velocity.z;
+    slot.phase = 'scattered';
+    slot.age = 0;
+    slot.pendingHit = false;
+    slot.waitForImpact = false;
+    slot.body.setEnabled(false);
+    this.out.hitCount++;
   }
 
   private syncSnapshot(): void {
@@ -199,11 +258,11 @@ export class StarCollisions {
         this.out.alphas[i] = 0;
         continue;
       }
-      const p = slot.body.translation(), o = i * 3;
+      const o = i * 3;
       this.out.starIndices[i] = slot.starIndex;
-      this.out.positions[o] = p.x;
-      this.out.positions[o + 1] = p.y;
-      this.out.positions[o + 2] = p.z;
+      this.out.positions[o] = slot.x;
+      this.out.positions[o + 1] = slot.y;
+      this.out.positions[o + 2] = slot.z;
       const base = this.field.alphas[slot.starIndex]!;
       this.out.alphas[i] = slot.phase === 'scattered' && slot.age > HOLD
         ? base * Math.max(0, 1 - (slot.age - HOLD) / FADE)
