@@ -46,6 +46,11 @@ export class StarCollisions {
   private readonly localTo: Vec3 = { x: 0, y: 0, z: 0 };
   private readonly localStar: Vec3 = { x: 0, y: 0, z: 0 };
   private readonly worldStar: Vec3 = { x: 0, y: 0, z: 0 };
+  private readonly zero: Vec3 = { x: 0, y: 0, z: 0 };
+  private shipX = 0;
+  private shipY = 0;
+  private shipZ = 0;
+  private disposed = false;
   private readonly onCollision = (h1: number, h2: number, started: boolean) => {
     if (!started) return;
     const starHandle = h1 === this.shipColliderHandle
@@ -64,7 +69,7 @@ export class StarCollisions {
   };
 
   constructor(
-    private readonly RAPIER: Rapier,
+    RAPIER: Rapier,
     private readonly world: World,
     private readonly shipColliderHandle: number,
     private readonly field: SpiralField,
@@ -98,7 +103,9 @@ export class StarCollisions {
   prepare(fromWorld: Vec3, toWorld: Vec3, galaxyAngle: number): void {
     rotateYInto(fromWorld, -galaxyAngle, this.localFrom);
     rotateYInto(toWorld, -galaxyAngle, this.localTo);
-    for (const starIndex of this.index.querySegment(this.localFrom, this.localTo, ACTIVE_RADIUS)) {
+    const candidates = this.index.querySegment(this.localFrom, this.localTo, ACTIVE_RADIUS);
+    for (let candidateIndex = 0; candidateIndex < candidates.length; candidateIndex++) {
+      const starIndex = candidates[candidateIndex]!;
       if (this.assigned.has(starIndex)) continue;
       let slot: Slot | undefined;
       for (let i = 0; i < this.slots.length; i++) {
@@ -119,38 +126,45 @@ export class StarCollisions {
       slot.age = 0;
       slot.body.setEnabled(true);
       slot.body.setTranslation(this.worldStar, true);
-      slot.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+      slot.body.setLinvel(this.zero, true);
       slot.body.setAdditionalMass(this.field.masses[starIndex]!, true);
-      slot.collider.setShape(new this.RAPIER.Ball(this.field.collisionRadii[starIndex]!));
+      slot.collider.setRadius(this.field.collisionRadii[starIndex]!);
       this.assigned.add(starIndex);
     }
   }
 
   afterStep(dt: number, shipPosition: Vec3): void {
+    this.shipX = shipPosition.x;
+    this.shipY = shipPosition.y;
+    this.shipZ = shipPosition.z;
     this.events.drainCollisionEvents(this.onCollision);
-    for (const slot of this.slots) {
-      if (slot.phase === 'free') continue;
-      if (slot.phase === 'armed') {
-        const p = slot.body.translation();
-        if (Math.hypot(
-          p.x - shipPosition.x,
-          p.y - shipPosition.y,
-          p.z - shipPosition.z,
-        ) > RELEASE_RADIUS) this.release(slot);
-      } else {
+    for (let i = 0; i < this.slots.length; i++) {
+      const slot = this.slots[i]!;
+      if (slot.phase === 'scattered') {
         slot.age += dt;
         if (slot.age >= HOLD + FADE) this.release(slot);
       }
     }
-    this.syncSnapshot();
   }
 
   snapshot(): ActiveStarSnapshot {
+    this.syncSnapshot();
     return this.out;
   }
 
   dispose(): void {
+    if (this.disposed) return;
+    for (let i = 0; i < this.slots.length; i++) {
+      this.world.removeRigidBody(this.slots[i]!.body);
+    }
+    this.slots.length = 0;
+    this.assigned.clear();
+    this.colliderSlots.clear();
+    this.out.starIndices.fill(-1);
+    this.out.positions.fill(0);
+    this.out.alphas.fill(0);
     this.events.free();
+    this.disposed = true;
   }
 
   private release(slot: Slot): void {
@@ -158,19 +172,30 @@ export class StarCollisions {
     slot.starIndex = -1;
     slot.phase = 'free';
     slot.age = 0;
-    slot.body.setLinvel({ x: 0, y: 0, z: 0 }, false);
+    slot.body.setLinvel(this.zero, false);
     slot.body.setEnabled(false);
   }
 
   private syncSnapshot(): void {
     for (let i = 0; i < this.slots.length; i++) {
       const slot = this.slots[i]!;
-      this.out.starIndices[i] = slot.starIndex;
       if (slot.phase === 'free') {
+        this.out.starIndices[i] = -1;
         this.out.alphas[i] = 0;
         continue;
       }
       const p = slot.body.translation(), o = i * 3;
+      if (slot.phase === 'armed' && Math.hypot(
+        p.x - this.shipX,
+        p.y - this.shipY,
+        p.z - this.shipZ,
+      ) > RELEASE_RADIUS) {
+        this.release(slot);
+        this.out.starIndices[i] = -1;
+        this.out.alphas[i] = 0;
+        continue;
+      }
+      this.out.starIndices[i] = slot.starIndex;
       this.out.positions[o] = p.x;
       this.out.positions[o + 1] = p.y;
       this.out.positions[o + 2] = p.z;
