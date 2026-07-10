@@ -129,30 +129,36 @@ test('rapier physics: holding W accelerates the dart, releasing glides it back t
   }).toPass({ timeout: 8000 });
 });
 
-test('collision: flying into the dot field perturbs the dart (it does not sail through cleanly)', async ({ page }) => {
+test('collision: flying into the galaxy reports reactive star activity', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/?mode=world');
-  await expect(page.locator('canvas#scene')).toBeVisible();
-  const speed = page.locator('.flight-speed');
-  await expect(speed).toHaveText('0 u/s');
+  const canvas = page.locator('canvas#scene');
+  await expect(canvas).toBeVisible();
+  await expect(page.locator('.flight-speed')).toHaveText('0 u/s', { timeout: 10_000 });
 
-  await page.locator('canvas#scene').click();
+  await canvas.click();
   await page.keyboard.down('w');
-
-  // Sample speed for ~4s at 100ms intervals (~40 samples). Open space => ramp up
-  // then hold. A collision in the central field => a visible drop from the peak.
-  // Sampling more frequently avoids missing a brief dip; threshold relaxed to >5
-  // so a glancing hit still counts (clean flight maxDrop stays ~0).
-  let peak = 0, maxDrop = 0;
-  for (let i = 0; i < 40; i++) {
-    await page.waitForTimeout(100);
-    const v = parseInt((await speed.textContent())?.replace(/[^\d-]/g, '') ?? '0', 10);
-    peak = Math.max(peak, v);
-    maxDrop = Math.max(maxDrop, peak - v);
-  }
+  await expect(async () => {
+    expect(Number(await canvas.getAttribute('data-star-hits'))).toBeGreaterThan(0);
+  }).toPass({ timeout: 5000 });
   await page.keyboard.up('w');
-  expect(peak).toBeGreaterThan(5);     // it did accelerate
-  expect(maxDrop).toBeGreaterThan(5);  // ...and a collision clearly perturbed the dart
+  expect(Number(await canvas.getAttribute('data-active-stars'))).toBeGreaterThan(0);
+});
+
+test('forward thrust emits particles that expire after release', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/?mode=world');
+  const canvas = page.locator('canvas#scene');
+  await expect(canvas).toBeVisible();
+  await expect(page.locator('.flight-speed')).toHaveText('0 u/s', { timeout: 10_000 });
+
+  await canvas.click();
+  await page.keyboard.down('w');
+  await expect(async () => {
+    expect(Number(await canvas.getAttribute('data-thruster-particles'))).toBeGreaterThan(0);
+  }).toPass({ timeout: 2000 });
+  await page.keyboard.up('w');
+  await expect(canvas).toHaveAttribute('data-thruster-particles', '0', { timeout: 2000 });
 });
 
 test('barrel-roll dodge: a single D press side-steps the dart laterally', async ({ page }) => {

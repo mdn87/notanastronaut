@@ -1,16 +1,14 @@
 // src/world/wire.ts
 import { DartPhysics } from '../physics/dart';
-import { makeObstacleField } from '../core/field';
 import { aimDelta, DEFAULT_STEER } from '../core/control';
+import type { FlightInput } from '../core/flight-types';
 import { FlightHud } from '../hud/flight-hud';
 import type { WorldScene } from './scene';
 
 const MAX_DT = 0.05;
 
 export async function wireWorld(scene: WorldScene, _opts: { reducedMotion: boolean }): Promise<() => void> {
-  const field = makeObstacleField(1981);
-  const dart = await DartPhysics.create({ bound: 720, boundPush: 220 }, field);
-  scene.setObstacles(field);
+  const dart = await DartPhysics.create({ bound: 720, boundPush: 220 }, scene.galaxyField);
   const hud = new FlightHud(document.getElementById('hud-root')!);
 
   // Drag-to-fly: while the left button is held, the cursor's offset from where it
@@ -26,6 +24,14 @@ export async function wireWorld(scene: WorldScene, _opts: { reducedMotion: boole
   const forward = () => (has('w', 'ArrowUp') ? 1 : 0) - (has('s', 'ArrowDown') ? 1 : 0);
   const strafe = () => 0;
   const boost = () => rightHeld;
+  const input: FlightInput = {
+    yawDelta: 0,
+    pitchDelta: 0,
+    forward: 0,
+    strafe: 0,
+    boost: false,
+    roll: 0,
+  };
 
   const onPointerMove = (e: { clientX: number; clientY: number }) => {
     if (dragging) { dragX = e.clientX - pressX; dragY = e.clientY - pressY; }
@@ -63,7 +69,7 @@ export async function wireWorld(scene: WorldScene, _opts: { reducedMotion: boole
   addEventListener('keydown', onKeyDown as unknown as EventListener);
   addEventListener('keyup', onKeyUp as unknown as EventListener);
 
-  let last = performance.now(), frameId = 0, stopped = false;
+  let last = performance.now(), frameId = 0, stopped = false, galaxyAngle = 0;
   const loop = (now: number) => {
     if (stopped) return;
     const dt = Math.min(MAX_DT, Math.max(0, (now - last) / 1000));
@@ -77,10 +83,18 @@ export async function wireWorld(scene: WorldScene, _opts: { reducedMotion: boole
       const d = aimDelta(cur.yaw, cur.pitch, anchorYaw, anchorPitch, dragX, dragY, dt, DEFAULT_STEER);
       yawDelta = d.yawDelta; pitchDelta = d.pitchDelta;
     }
-    dart.step(dt, { yawDelta, pitchDelta, forward: forward(), strafe: strafe(), boost: boost(), roll: rollEvent });
+    input.yawDelta = yawDelta;
+    input.pitchDelta = pitchDelta;
+    input.forward = forward();
+    input.strafe = strafe();
+    input.boost = boost();
+    input.roll = rollEvent;
+    galaxyAngle += dt * 0.015;
+    dart.step(dt, input, galaxyAngle);
     rollEvent = 0; // consume the one-frame edge
     const s = dart.state();
-    scene.frame(dt, s, dart.obstaclePositions());
+    const active = dart.activeStars();
+    scene.frame(dt, s, active, galaxyAngle);
     hud.setSpeed(s.speed);
     hud.setReadout(scene.readout());
     frameId = requestAnimationFrame(loop);
