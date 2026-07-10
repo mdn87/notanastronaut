@@ -16,12 +16,28 @@ const run = (particles: ThrusterParticles, enginePower: number, seconds: number)
 };
 
 describe('ThrusterParticles', () => {
+  it('exposes its fixed capacity', () => {
+    const particles = new ThrusterParticles(16);
+
+    expect(particles.capacity).toBe(16);
+  });
+
   it('emits no particles at zero engine power', () => {
     const particles = new ThrusterParticles();
 
     run(particles, 0, 1);
 
     expect(particles.aliveCount).toBe(0);
+  });
+
+  it('ignores NaN dt without poisoning later valid emission', () => {
+    const particles = new ThrusterParticles();
+
+    particles.step(Number.NaN, input(1));
+    expect(particles.aliveCount).toBe(0);
+
+    run(particles, 1, 1);
+    expect(particles.aliveCount).toBeGreaterThan(0);
   });
 
   it('makes boost denser and faster than normal thrust', () => {

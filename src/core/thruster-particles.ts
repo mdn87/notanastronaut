@@ -29,7 +29,7 @@ export class ThrusterParticles {
   private emissionAccumulator = 0;
   private serial = 0;
 
-  public constructor(capacity = 128, seed = 1981) {
+  public constructor(readonly capacity = 128, seed = 1981) {
     this.positions = new Float32Array(capacity * 3);
     this.sizes = new Float32Array(capacity);
     this.alphas = new Float32Array(capacity);
@@ -48,7 +48,7 @@ export class ThrusterParticles {
   }
 
   public step(dt: number, input: ThrusterInput): void {
-    if (dt <= 0) return;
+    if (!(dt > 0)) return;
 
     for (let i = 0; i < this.alive.length; i += 1) {
       if (this.alive[i] === 0) continue;
