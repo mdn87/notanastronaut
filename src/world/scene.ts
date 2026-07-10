@@ -97,11 +97,18 @@ export function syncActiveStarBuffers(
     const next = active.starIndices[i]!;
     if (previous !== next) {
       if (previous >= 0) state.displayAlphas[previous] = baseAlphas[previous]!;
-      if (next >= 0) state.displayAlphas[next] = 0;
-      state.indices[i] = next;
       state.baseChanged = true;
     }
+  }
 
+  for (let i = 0; i < state.indices.length; i++) {
+    const next = active.starIndices[i]!;
+    if (state.indices[i] !== next && next >= 0) state.displayAlphas[next] = 0;
+  }
+
+  for (let i = 0; i < state.indices.length; i++) {
+    const next = active.starIndices[i]!;
+    state.indices[i] = next;
     const offset = i * 3;
     if (next >= 0) {
       const sourceOffset = next * 3;
