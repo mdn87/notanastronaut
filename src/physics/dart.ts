@@ -33,6 +33,9 @@ const ZERO = { x: 0, y: 0, z: 0 };
  */
 export class DartPhysics {
   static async create(opts: Partial<ControlOpts> = {}, obstacleSpecs: ObstacleSpec[] = []): Promise<DartPhysics> {
+    if (opts.wrapEdge !== undefined && (!Number.isFinite(opts.wrapEdge) || opts.wrapEdge <= 0)) {
+      throw new RangeError('wrapEdge must be a finite positive number');
+    }
     const RAPIER = await import('@dimforge/rapier3d/rapier.js');
     return new DartPhysics(RAPIER, { ...DEFAULT_CONTROL, ...opts }, obstacleSpecs);
   }
