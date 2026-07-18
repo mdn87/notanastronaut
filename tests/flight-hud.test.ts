@@ -51,4 +51,22 @@ describe('FlightHud', () => {
     new FlightHud(root).dispose();
     expect((root as unknown as { replaceChildren: ReturnType<typeof vi.fn> }).replaceChildren).toHaveBeenCalled();
   });
+
+  it('theme toggle shows the theme you would switch TO and fires the callback', () => {
+    const { root, el } = makeRoot();
+    const onThemeToggle = vi.fn();
+    const hud = new FlightHud(root, { theme: 'light', onThemeToggle });
+    const t = el('.theme-toggle') as unknown as { textContent: string; onclick: (e: { preventDefault(): void }) => void };
+    expect(t.textContent).toBe('[ dark ]');
+    t.onclick({ preventDefault: () => {} });
+    expect(onThemeToggle).toHaveBeenCalledTimes(1);
+    hud.setTheme('dark');
+    expect(t.textContent).toBe('[ light ]');
+  });
+
+  it('renders without theme opts (legacy construction)', () => {
+    const { root, el } = makeRoot();
+    new FlightHud(root);
+    expect((el('.theme-toggle') as unknown as { textContent: string }).textContent).toBe('[ dark ]');
+  });
 });
