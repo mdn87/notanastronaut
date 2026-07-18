@@ -74,13 +74,18 @@ test('home in world mode boots the free-fly galaxy canvas', async ({ page }) => 
   await page.goto('/?mode=world');
   await expect(body(page)).toHaveAttribute('data-mode', 'world');
   await expect(page.locator('canvas#scene')).toBeVisible();
-  await expect(page.locator('.hud-strip .status')).toContainText(/move/i, { timeout: 10_000 }); // WASM init can take a moment
+  await expect(page.locator('.flight-telemetry')).toContainText(/GRID (OK|WRAP)/, { timeout: 10_000 }); // WASM init can take a moment
 });
 
 test('narrow world HUD keeps telemetry clear of the centered compass', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
 
-  for (const viewport of [{ width: 320, height: 480 }, { width: 375, height: 480 }]) {
+  for (const viewport of [
+    { width: 320, height: 480 },
+    { width: 375, height: 480 },
+    { width: 521, height: 480 },
+    { width: 768, height: 480 },
+  ]) {
     await page.setViewportSize(viewport);
     await page.goto('/?mode=world');
     await expect(body(page)).toHaveAttribute('data-mode', 'world');
@@ -191,14 +196,14 @@ test('barrel-roll dodge: a single D press side-steps the dart laterally', async 
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/?mode=world');
   await expect(page.locator('canvas#scene')).toBeVisible();
-  const readout = page.locator('.flight-readout');
+  const xyz = page.locator('.flight-xyz');
   await page.locator('canvas#scene').click();
-  // Wait until the physics loop is live (readout populated = key listeners attached),
+  // Wait until the physics loop is live (XYZ telemetry populated = key listeners attached),
   // so the single press can't race a still-booting world (heavier with a dense field).
-  await expect(readout).toHaveText(/X/, { timeout: 8000 });
+  await expect(xyz).toHaveText(/X/, { timeout: 8000 });
   await page.keyboard.press('d'); // one barrel roll + side-step (no forward thrust)
   await expect(async () => {
-    const x = parseInt((await readout.textContent())?.match(/X\s*([+-]\d+)/)?.[1] ?? '0', 10);
+    const x = parseInt((await xyz.textContent())?.match(/X\s*([+-]\d+)/)?.[1] ?? '0', 10);
     expect(Math.abs(x)).toBeGreaterThan(2); // dodged sideways from the lateral impulse
   }).toPass({ timeout: 3000 });
 });
