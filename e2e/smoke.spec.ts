@@ -97,6 +97,7 @@ test('desktop spaceship HUD keeps the compass bottom-centered with side instrume
     };
     return {
       viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
       compass: read('.flight-compass'),
       minimap: read('.flight-minimap'),
       telemetry: read('.flight-telemetry'),
@@ -104,8 +105,13 @@ test('desktop spaceship HUD keeps the compass bottom-centered with side instrume
   });
 
   expect(Math.abs((geometry.compass.left + geometry.compass.width / 2) - geometry.viewportWidth / 2)).toBeLessThanOrEqual(2);
+  expect(geometry.minimap.right).toBeLessThanOrEqual(geometry.compass.left);
+  expect(geometry.telemetry.left).toBeGreaterThanOrEqual(geometry.compass.right);
   expect(Math.abs(geometry.compass.bottom - geometry.minimap.bottom)).toBeLessThanOrEqual(2);
   expect(Math.abs(geometry.compass.bottom - geometry.telemetry.bottom)).toBeLessThanOrEqual(2);
+  expect(Math.abs(geometry.viewportHeight - geometry.compass.bottom - 16)).toBeLessThanOrEqual(2);
+  expect(Math.abs(geometry.viewportHeight - geometry.minimap.bottom - 16)).toBeLessThanOrEqual(2);
+  expect(Math.abs(geometry.viewportHeight - geometry.telemetry.bottom - 16)).toBeLessThanOrEqual(2);
 });
 
 test('narrow world HUD keeps telemetry clear of the centered compass', async ({ page }) => {
@@ -114,10 +120,13 @@ test('narrow world HUD keeps telemetry clear of the centered compass', async ({ 
   for (const viewport of [
     { width: 320, height: 480 },
     { width: 375, height: 480 },
+    { width: 520, height: 480 },
     { width: 521, height: 480 },
     { width: 768, height: 480 },
     { width: 769, height: 480 },
     { width: 800, height: 480 },
+    { width: 900, height: 480 },
+    { width: 901, height: 480 },
   ]) {
     await page.setViewportSize(viewport);
     await page.goto('/?mode=world');
@@ -160,17 +169,41 @@ test('world mode exposes a rendered canvas grid surface', async ({ page }) => {
   await page.goto('/?mode=world');
   const surface = page.locator('canvas#scene');
   await expect(surface).toBeVisible();
-  const dimensions = await surface.evaluate((node) => {
+  await expect(page.locator('.flight-telemetry')).toContainText(/GRID (OK|WRAP)/, { timeout: 10_000 });
+  const dimensions = await surface.evaluate(async (node) => {
     const canvas = node as HTMLCanvasElement;
+    const gl = (canvas.getContext('webgl2') || canvas.getContext('webgl')) as WebGLRenderingContext | null;
+    if (!gl) throw new Error('world canvas has no WebGL context');
+
+    const pixels = new Uint8Array(canvas.width * canvas.height * 4);
+    let renderedPixels = 0;
+    for (let frame = 0; frame < 5; frame++) {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+      const background: [number, number, number] = [pixels[0]!, pixels[1]!, pixels[2]!];
+      let frameSignal = 0;
+      for (let offset = 0; offset < pixels.length; offset += 4) {
+        const difference = Math.max(
+          Math.abs(pixels[offset]! - background[0]),
+          Math.abs(pixels[offset + 1]! - background[1]),
+          Math.abs(pixels[offset + 2]! - background[2]),
+        );
+        if (difference > 8) frameSignal++;
+      }
+      renderedPixels = Math.max(renderedPixels, frameSignal);
+    }
+
     return {
       width: canvas.width,
       height: canvas.height,
-      hasWebGLContext: Boolean(canvas.getContext('webgl2') || canvas.getContext('webgl')),
+      hasWebGLContext: true,
+      renderedPixels,
     };
   });
   expect(dimensions.width).toBeGreaterThan(0);
   expect(dimensions.height).toBeGreaterThan(0);
   expect(dimensions.hasWebGLContext).toBe(true);
+  expect(dimensions.renderedPixels).toBeGreaterThan(10);
 });
 
 test('rapier physics: holding W accelerates the dart, releasing glides it back to rest', async ({ page }) => {
@@ -230,6 +263,24 @@ test('barrel-roll dodge: a single D press side-steps the dart laterally', async 
   // Wait until the physics loop is live (XYZ telemetry populated = key listeners attached),
   // so the single press can't race a still-booting world (heavier with a dense field).
   await expect(xyz).toHaveText(/X/, { timeout: 8000 });
+  await page.evaluate(() => new Promise<void>((resolve, reject) => {
+    const element = document.querySelector('.flight-xyz');
+    if (!element) {
+      reject(new Error('flight XYZ telemetry is missing'));
+      return;
+    }
+    let timeout = 0;
+    const observer = new MutationObserver(() => {
+      window.clearTimeout(timeout);
+      observer.disconnect();
+      resolve();
+    });
+    observer.observe(element, { childList: true, characterData: true, subtree: true });
+    timeout = window.setTimeout(() => {
+      observer.disconnect();
+      reject(new Error('flight XYZ telemetry did not receive a live update'));
+    }, 8000);
+  }));
   await page.keyboard.press('d'); // one barrel roll + side-step (no forward thrust)
   await expect(async () => {
     const x = parseInt((await xyz.textContent())?.match(/X\s*([+-]\d+)/)?.[1] ?? '0', 10);
