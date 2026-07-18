@@ -1,8 +1,11 @@
 // src/core/galaxy.ts
 import { mulberry32 } from './rng';
+import type { Rgb } from './types';
+import { THEMES } from './theme';
 
 export interface SpiralField {
-  positions: Float32Array; sizes: Float32Array; alphas: Float32Array; colors: Float32Array; count: number;
+  positions: Float32Array; sizes: Float32Array; alphas: Float32Array;
+  colors: Float32Array; mixes: Float32Array; count: number;
 }
 export interface SpiralOpts {
   count?: number; arms?: number; radius?: number; thickness?: number; twist?: number; coreFraction?: number;
@@ -10,9 +13,17 @@ export interface SpiralOpts {
 
 export const GALAXY_MAX_POINTS = 40000;
 
-// Brand cyan (arms) -> deep navy (core).
-const CYAN = { r: 0x4a / 255, g: 0xb3 / 255, b: 0xd4 / 255 };
-const NAVY = { r: 0x16 / 255, g: 0x32 / 255, b: 0x4a / 255 };
+/** Lerp arm->core per point by mix (m = coreness²). Pure; used for live re-theming. */
+export function paintStarColors(mixes: Float32Array, arm: Rgb, core: Rgb): Float32Array {
+  const out = new Float32Array(mixes.length * 3);
+  for (let i = 0; i < mixes.length; i++) {
+    const m = mixes[i]!;
+    out[i * 3] = arm.r + (core.r - arm.r) * m;
+    out[i * 3 + 1] = arm.g + (core.g - arm.g) * m;
+    out[i * 3 + 2] = arm.b + (core.b - arm.b) * m;
+  }
+  return out;
+}
 
 /**
  * Dark-stardust spiral galaxy as point arrays for a BufferGeometry. A flattened
@@ -37,7 +48,7 @@ export function makeSpiralGalaxy(seed: number, opts: SpiralOpts = {}): SpiralFie
   const positions = new Float32Array(count * 3);
   const sizes = new Float32Array(count);
   const alphas = new Float32Array(count);
-  const colors = new Float32Array(count * 3);
+  const mixes = new Float32Array(count);
 
   for (let i = 0; i < count; i++) {
     const core = rnd() < coreFraction;
@@ -59,10 +70,8 @@ export function makeSpiralGalaxy(seed: number, opts: SpiralOpts = {}): SpiralFie
     positions[i * 3 + 2] = Math.sin(theta) * r;
     sizes[i] = 0.8 + 1.6 * coreness + rnd() * 0.5;
     alphas[i] = Math.min(1, 0.12 + 0.34 * coreness + rnd() * 0.05);
-    const m = coreness * coreness;
-    colors[i * 3] = CYAN.r + (NAVY.r - CYAN.r) * m;
-    colors[i * 3 + 1] = CYAN.g + (NAVY.g - CYAN.g) * m;
-    colors[i * 3 + 2] = CYAN.b + (NAVY.b - CYAN.b) * m;
+    mixes[i] = coreness * coreness;
   }
-  return { positions, sizes, alphas, colors, count };
+  const colors = paintStarColors(mixes, THEMES.light.starArm, THEMES.light.starCore);
+  return { positions, sizes, alphas, colors, mixes, count };
 }
