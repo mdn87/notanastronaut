@@ -117,7 +117,7 @@
 .flight-wrap.is-wrapped { color: var(--accent-text); border-color: var(--accent); }
 .flight-controls { color: var(--ink); font-size: 0.56rem; letter-spacing: 0; }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .flight-telemetry { top: 48px; right: 16px; bottom: auto; }
 }
 
