@@ -6,7 +6,7 @@
 import '@dimforge/rapier3d/rapier_wasm3d.js';
 import type { FlightInput, FlightState } from '../core/flight-types';
 import {
-  DEFAULT_CONTROL, headingFrom, rightFrom, integrateFacing, thrustForce, boundaryForce, stepRoll,
+  DEFAULT_CONTROL, headingFrom, rightFrom, integrateFacing, thrustForce, boundaryForce, stepRoll, alignVelocity,
   type ControlOpts,
 } from '../core/control';
 import type { ObstacleSpec } from '../core/field';
@@ -82,6 +82,7 @@ export class DartPhysics {
     this.bank = stepRoll(this.bank, this.rollTarget, ROLL_SPEED, dt); // bank now carries the barrel-roll spin
 
     const cap = input.boost ? this.o.boostMaxSpeed : this.o.maxSpeed;
+    const sense: 1 | -1 = input.forward < 0 ? -1 : 1; // commanded travel sense; coasting = forward
     // thrustForce is loop-invariant: heading/right/input are fixed for this step
     const thr = thrustForce(input, heading, right, this.o);
     this.acc += Math.min(dt, MAX_STEP);
@@ -96,8 +97,11 @@ export class DartPhysics {
       }, true);
       this.world.step();
       const v = this.body.linvel();
-      const sp = Math.hypot(v.x, v.y, v.z);
-      if (sp > cap) { const k = cap / sp; this.body.setLinvel({ x: v.x * k, y: v.y * k, z: v.z * k }, true); }
+      // Alignment (speed-preserving rotation toward the nose), then the hard cap.
+      const av = alignVelocity({ x: v.x, y: v.y, z: v.z }, heading, sense, this.o.align, FIXED);
+      let sp = Math.hypot(av.x, av.y, av.z);
+      if (sp > cap) { const k = cap / sp; av.x *= k; av.y *= k; av.z *= k; sp = cap; }
+      if (av.x !== v.x || av.y !== v.y || av.z !== v.z) this.body.setLinvel(av, true);
       this.acc -= FIXED;
     }
   }

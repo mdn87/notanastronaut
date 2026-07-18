@@ -72,7 +72,9 @@ export function stepRoll(angle: number, target: number, speed: number, dt: numbe
  * travel direction (+1 forward/coast, −1 while reverse is held): deriving it
  * from sign(v·h) would stall alignment at 90° and fight a forward U-turn.
  * Exact anti-parallel (θ = π) is a deliberate no-op — no unique rotation
- * axis; the next thrust step bends velocity off the axis. Pure.
+ * axis; the next thrust step bends velocity off the axis. `heading` must be
+ * a unit vector (callers pass `headingFrom(...)`, which is unit by
+ * construction). Pure.
  */
 export function alignVelocity(vel: Vec3, heading: Vec3, sense: 1 | -1, align: number, dt: number): Vec3 {
   const s = Math.hypot(vel.x, vel.y, vel.z);
