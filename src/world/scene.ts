@@ -4,7 +4,7 @@ import type { FlightState } from '../core/flight-types';
 import type { Vec3 } from '../core/types';
 import type { ObstacleSpec } from '../core/field';
 import { makeSpiralGalaxy } from '../core/galaxy';
-import { makeGridLines } from '../core/grid';
+import { GRID_LINE_EXTENT, GRID_LINE_SPACING, makeGridLines } from '../core/grid';
 import { makeVolumeBodies } from '../core/parallax';
 
 // galaxy-thruster.svg lives in public/ — reference it by URL, never `import` it.
@@ -18,7 +18,7 @@ const CAM_BACK = 11, CAM_UP = 3.4, CAM_LAG = 5, CAM_LOOK_LAG = 12, CAM_TURN = 2;
 const CAM_PITCH_MAX = 0.5; // cap the trail's elevation (rad ≈ 29°) so a steep climb/dive never swings the camera near vertical (which would flip the lookAt up-vector)
 const FORWARD = new THREE.Vector3(0, 0, 1);
 const GALAXY_SPIN = 0.015; // rad/s, top-down (about y)
-const EXTENT = 700;        // vast, explorable galaxy — matches the flight soft-bound
+const EXTENT = GRID_LINE_EXTENT;
 const GALAXY_RADIUS = 700;
 
 const v = (p: Vec3) => new THREE.Vector3(p.x, p.y, p.z);
@@ -113,7 +113,7 @@ export class WorldScene {
     // 3D grid as a fading line lattice — a clear spatial reference / motion cue,
     // unmistakable against the point stars.
     const gridGeom = new THREE.BufferGeometry();
-    gridGeom.setAttribute('position', new THREE.BufferAttribute(makeGridLines({ spacing: 90, extent: EXTENT }), 3));
+    gridGeom.setAttribute('position', new THREE.BufferAttribute(makeGridLines({ spacing: GRID_LINE_SPACING, extent: GRID_LINE_EXTENT }), 3));
     this.gridMat = gridLinesMaterial();
     this.grid = new THREE.LineSegments(gridGeom, this.gridMat);
     this.scene.add(this.grid);
@@ -236,19 +236,6 @@ export class WorldScene {
     }
 
     this.renderer.render(this.scene, this.camera);
-  }
-
-  /** Avatar's screen position + world coords, for the floating position readout. */
-  readout(): { x: number; y: number; pos: Vec3; visible: boolean } {
-    const el = this.renderer.domElement;
-    const w = el.clientWidth || innerWidth, h = el.clientHeight || innerHeight;
-    const ndc = this.avatar.position.clone().project(this.camera);
-    return {
-      x: (ndc.x * 0.5 + 0.5) * w,
-      y: (-ndc.y * 0.5 + 0.5) * h,
-      pos: { x: this.avatar.position.x, y: this.avatar.position.y, z: this.avatar.position.z },
-      visible: ndc.z < 1,
-    };
   }
 
   dispose(): void {

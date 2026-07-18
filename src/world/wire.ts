@@ -2,6 +2,7 @@
 import { DartPhysics } from '../physics/dart';
 import { makeObstacleField } from '../core/field';
 import { steerDelta, DEFAULT_STEER } from '../core/control';
+import { GRID_EDGE } from '../core/grid';
 import { FlightHud } from '../hud/flight-hud';
 import type { WorldScene } from './scene';
 
@@ -9,9 +10,9 @@ const MAX_DT = 0.05;
 
 export async function wireWorld(scene: WorldScene, _opts: { reducedMotion: boolean }): Promise<() => void> {
   const field = makeObstacleField(1981);
-  const dart = await DartPhysics.create({ bound: 720, boundPush: 220 }, field);
+  const dart = await DartPhysics.create({ wrapEdge: GRID_EDGE }, field);
   scene.setObstacles(field);
-  const hud = new FlightHud(document.getElementById('hud-root')!);
+  const hud = new FlightHud(document.getElementById('hud-root')!, { edge: GRID_EDGE });
 
   // Drag-to-fly: while the left button is held, the cursor's offset from where it
   // was pressed steers like a flight stick — drag left -> nose left, drag up -> up.
@@ -72,8 +73,7 @@ export async function wireWorld(scene: WorldScene, _opts: { reducedMotion: boole
     rollEvent = 0; // consume the one-frame edge
     const s = dart.state();
     scene.frame(dt, s, dart.obstaclePositions());
-    hud.setSpeed(s.speed);
-    hud.setReadout(scene.readout());
+    hud.setNavigation({ speed: s.speed, position: s.position, heading: s.heading, yaw: s.yaw, pitch: s.pitch, wrapped: s.wrapped });
     frameId = requestAnimationFrame(loop);
   };
   frameId = requestAnimationFrame(loop);
