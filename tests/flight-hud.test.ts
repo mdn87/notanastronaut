@@ -62,13 +62,15 @@ describe('FlightHud', () => {
     expect(el('.flight-speed').textContent).toBe('42 u/s');
     expect(el('.flight-xyz').textContent).toBe('X +630  Y -034  Z +630');
     expect(el('.flight-wrap').textContent).toBe('GRID WRAP');
-    expect(el('.flight-minimap-marker').style.transform).toBe('translate(90%, 10%)');
+    expect(el('.flight-minimap-marker').style.left).toBe('90%');
+    expect(el('.flight-minimap-marker').style.top).toBe('10%');
+    expect(el('.flight-minimap-marker').style.transform).toBe('translate(-50%, -50%)');
     expect(el('.flight-minimap-vector').style.transform).toMatch(/rotate\(90deg\)/);
     expect(el('.flight-compass-band').style.transform).toMatch(/translateX\(/);
     expect(el('.flight-gimbal').style.transform).toMatch(/rotate\(/);
   });
 
-  it('maps the configured edge to the minimap inner 10–90% range', () => {
+  it('maps configured edges and the center to the minimap inner 10–90% range', () => {
     const { root, el } = makeRoot();
     const hud = new FlightHud(root, { edge: 100 });
     hud.setNavigation({
@@ -79,7 +81,21 @@ describe('FlightHud', () => {
       pitch: 0,
       wrapped: false,
     });
-    expect(el('.flight-minimap-marker').style.transform).toBe('translate(10%, 90%)');
+    expect(el('.flight-minimap-marker').style.left).toBe('10%');
+    expect(el('.flight-minimap-marker').style.top).toBe('90%');
+    expect(el('.flight-minimap-marker').style.transform).toBe('translate(-50%, -50%)');
+
+    hud.setNavigation({
+      speed: 0,
+      position: { x: 0, y: 0, z: 0 },
+      heading: { x: 0, y: 0, z: 1 },
+      yaw: 0,
+      pitch: 0,
+      wrapped: false,
+    });
+    expect(el('.flight-minimap-marker').style.left).toBe('50%');
+    expect(el('.flight-minimap-marker').style.top).toBe('50%');
+    expect(el('.flight-minimap-marker').style.transform).toBe('translate(-50%, -50%)');
   });
 
   it('clears wrap feedback on the next non-wrap navigation frame', () => {
