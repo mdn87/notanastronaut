@@ -7,6 +7,8 @@
     <title>Not An Astronaut — Matt Newman</title>
     <meta name="description" content="Matt Newman's portfolio: a 3D line-art star map of engineering missions. Not actually an astronaut." />
     <link rel="canonical" href="https://notanastronaut.com/" />
+    <script>/* pre-paint theme bootstrap: module scripts run after first paint, so only this prevents a light flash */
+    try { if (localStorage.getItem('naa-theme') === 'dark') document.documentElement.dataset.theme = 'dark'; } catch (e) {}</script>
     <link rel="stylesheet" href="/src/brand/tokens.css" />
     <link rel="stylesheet" href="/src/brand/base.css" />
   </head>
