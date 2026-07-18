@@ -18,8 +18,8 @@ describe('wrapScalar', () => {
 describe('wrapPositionInto', () => {
   it('wraps each component into the torus and reports movement', () => {
     const out = { x: 0, y: 0, z: 0 };
-    expect(wrapPositionInto({ x: 631, y: -700, z: 0 }, 630, out)).toBe(true);
-    expect(out).toEqual({ x: -629, y: 560, z: 0 });
+    expect(wrapPositionInto({ x: 631, y: -700, z: 631 }, 630, out)).toBe(true);
+    expect(out).toEqual({ x: -629, y: 560, z: -629 });
   });
 
   it('copies an in-bounds position and reports no movement', () => {
