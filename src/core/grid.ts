@@ -1,5 +1,15 @@
 export const GRID_MAX_POINTS = 20000;
 
+export const GRID_LINE_SPACING = 90;
+export const GRID_LINE_EXTENT = 700;
+export function gridEdge(opts: { spacing?: number; extent?: number } = {}): number {
+  const spacing = opts.spacing ?? GRID_LINE_SPACING;
+  const extent = opts.extent ?? GRID_LINE_EXTENT;
+  if (!(spacing > 0) || !(extent >= 0)) throw new Error('grid spacing and extent must be positive');
+  return Math.floor(extent / spacing) * spacing;
+}
+export const GRID_EDGE = gridEdge();
+
 /** Regular x/y/z dot lattice filling the flyable volume. Flat xyz Float32Array. */
 export function makeDotGrid(opts: { spacing?: number; extent?: number } = {}): Float32Array {
   const spacing = opts.spacing ?? 26;
@@ -26,10 +36,10 @@ export const GRID_MAX_LINES = 4000;
  * along x, y and z at every lattice intersection of the other two axes.
  */
 export function makeGridLines(opts: { spacing?: number; extent?: number } = {}): Float32Array {
-  const spacing = opts.spacing ?? 90;
-  const extent = opts.extent ?? 700;
+  const spacing = opts.spacing ?? GRID_LINE_SPACING;
+  const extent = opts.extent ?? GRID_LINE_EXTENT;
   const n = Math.floor(extent / spacing);
-  const span = n * spacing;
+  const span = gridEdge({ spacing, extent });
   const ticks: number[] = [];
   for (let i = -n; i <= n; i++) ticks.push(i * spacing);
   const lineCount = 3 * ticks.length * ticks.length;
