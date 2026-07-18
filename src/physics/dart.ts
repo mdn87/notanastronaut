@@ -7,7 +7,7 @@ import '@dimforge/rapier3d/rapier_wasm3d.js';
 import type { FlightInput, FlightState } from '../core/flight-types';
 import {
   DEFAULT_CONTROL, headingFrom, rightFrom, integrateFacing, thrustForce, boundaryForce, stepRoll,
-  type ControlOpts,
+  alignVelocity, type ControlOpts,
 } from '../core/control';
 import type { SpiralField } from '../core/galaxy';
 import { StarCollisions, type ActiveStarSnapshot } from './star-collisions';
@@ -88,6 +88,7 @@ export class DartPhysics {
     this.bank = stepRoll(this.bank, this.rollTarget, ROLL_SPEED, dt); // bank now carries the barrel-roll spin
 
     const cap = this.boosting ? this.o.boostMaxSpeed : this.o.maxSpeed;
+    const sense: 1 | -1 = input.forward < 0 ? -1 : 1; // commanded travel sense; coasting = forward
     // thrustForce is loop-invariant: heading/right/input are fixed for this step
     const thr = thrustForce(input, heading, right, this.o);
     this.acc += Math.min(dt, MAX_STEP);
@@ -108,11 +109,11 @@ export class DartPhysics {
       this.world.step(this.stars.events);
       this.stars.afterStep(FIXED, this.body.translation());
       const nextVelocity = this.body.linvel();
-      const sp = Math.hypot(nextVelocity.x, nextVelocity.y, nextVelocity.z);
-      if (sp > cap) {
-        const k = cap / sp;
-        this.body.setLinvel({ x: nextVelocity.x * k, y: nextVelocity.y * k, z: nextVelocity.z * k }, true);
-      }
+      // Alignment (speed-preserving rotation toward the nose), then the hard cap.
+      const av = alignVelocity({ x: nextVelocity.x, y: nextVelocity.y, z: nextVelocity.z }, heading, sense, this.o.align, FIXED);
+      let sp = Math.hypot(av.x, av.y, av.z);
+      if (sp > cap) { const k = cap / sp; av.x *= k; av.y *= k; av.z *= k; sp = cap; }
+      if (av.x !== nextVelocity.x || av.y !== nextVelocity.y || av.z !== nextVelocity.z) this.body.setLinvel(av, true);
       this.acc -= FIXED;
     }
   }

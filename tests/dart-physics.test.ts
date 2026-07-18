@@ -64,4 +64,21 @@ describe('DartPhysics', () => {
       dart.dispose();
     }
   });
+
+  it('a coasting dart curves toward the nose after a yaw turn (velocity alignment)', async () => {
+    // count: 0 galaxy — no stars, so nothing can collide with the dart mid-test.
+    const dart = await DartPhysics.create({}, makeSpiralGalaxy(9, { count: 0 }));
+    try {
+      for (let i = 0; i < 60; i++) dart.step(1 / 60, input({ forward: 1 }), 0);            // thrust +z, 1s
+      for (let i = 0; i < 30; i++) dart.step(1 / 60, input({ yawDelta: Math.PI / 60 }), 0); // release, yaw 90°
+      for (let i = 0; i < 90; i++) dart.step(1 / 60, input(), 0);                           // coast 1.5s
+      const s = dart.state();
+      expect(s.speed).toBeGreaterThan(1);
+      const h = { x: Math.cos(s.pitch) * Math.sin(s.yaw), y: Math.sin(s.pitch), z: Math.cos(s.pitch) * Math.cos(s.yaw) };
+      const dot = (s.velocity.x * h.x + s.velocity.y * h.y + s.velocity.z * h.z) / s.speed;
+      expect(dot).toBeGreaterThan(0.98); // velocity swung to the nose WHILE COASTING
+    } finally {
+      dart.dispose();
+    }
+  });
 });
