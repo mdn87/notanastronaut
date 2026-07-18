@@ -380,7 +380,7 @@ it('updates telemetry, minimap position, compass, and wrap state from plain navi
   expect(el('.flight-speed').textContent).toBe('42 u/s');
   expect(el('.flight-xyz').textContent).toBe('X +012  Y -034  Z +120');
   expect(el('.flight-wrap').textContent).toMatch(/GRID WRAP/);
-  expect(el('.flight-wrap').style.color).toBe('var(--accent)');
+  expect(el('.flight-wrap').classList.contains('is-wrapped')).toBe(true);
   expect(el('.flight-minimap-marker').style.transform).toMatch(/translate/);
   expect(el('.flight-compass-band').style.transform).toMatch(/translateX/);
   expect(el('.flight-gimbal').style.transform).toMatch(/rotate/);
@@ -396,6 +396,7 @@ it('clears wrap feedback on the next non-wrap navigation frame', () => {
   hud.setNavigation({ ...nav, wrapped: true });
   hud.setNavigation({ ...nav, wrapped: false });
   expect(el('.flight-wrap').textContent).toBe('GRID OK');
+  expect(el('.flight-wrap').classList.contains('is-wrapped')).toBe(false);
 });
 ```
 
@@ -431,14 +432,18 @@ selectors: `.flight-minimap`, `.flight-minimap-marker`,
 `.flight-minimap-vector`, `.flight-compass`, `.flight-compass-band`,
 `.flight-gimbal`, `.flight-wrap`, `.flight-speed`, and `.flight-xyz`.
 
+Extend the test double's element shape with a minimal `classList` implementing
+`add`, `remove`, and `contains`; use that classList in the assertions above so
+the test exercises the same mechanism as production CSS.
+
 `setNavigation` must:
 
 - format XYZ with the existing signed three-digit convention;
 - map X/Z from `[-edge, edge]` into the minimap's inner 10–90% range;
 - rotate the minimap vector with `Math.atan2(heading.x, heading.z)`;
 - rotate the cardinal band from `yaw` and tilt the gimbal from `pitch`;
-- set `GRID WRAP` and an orange class/state only when `wrapped` is true;
-- otherwise set `GRID OK` and clear the orange state.
+- set `GRID WRAP` and add the `is-wrapped` class only when `wrapped` is true;
+- otherwise set `GRID OK` and remove the `is-wrapped` class.
 
 Do not rebuild `root` after construction and do not retain the old
 `setReadout` method. Keep `dispose()` clearing the owned root.
@@ -497,7 +502,8 @@ git commit -m "feat(hud): add geometric flight instruments"
 
 Change the `FlightHud` test double to expose `setNavigation` instead of
 `setSpeed`/`setReadout`, and change the fake scene to expose only the methods
-still used by `wireWorld`. Add an assertion that one animation frame forwards
+still used by `wireWorld`. Update the mocked `dart.state()` return object to
+include `wrapped: false`. Add an assertion that one animation frame forwards
 the plain navigation state, including `wrapped`, to the HUD.
 
 - [ ] **Step 2: Run the wire test to verify the mock/API mismatch fails**
@@ -586,9 +592,16 @@ await expect(page.locator('.flight-readout')).toHaveCount(0);
 
 Add one geometry check through `page.evaluate` that reads the three bounding
 rectangles and verifies the compass center is within two pixels of the viewport
-center and its bottom edge is below both side instruments. Also verify the
+center and its bottom edge aligns with the bottom edges of both side
+instruments within two pixels. Also verify the
 computed background color of all three panels is opaque white (`rgb(255, 255,
 255)`).
+
+Update the existing barrel-roll dodge test in the same file to use
+`page.locator('.flight-xyz')` in place of `.flight-readout` for both the
+physics-liveness wait and the signed-X parsing. The telemetry keeps the same
+`X +012` format, so the existing `/X/` wait and `X\s*([+-]\d+)` extraction
+remain valid.
 
 - [ ] **Step 3: Run the focused Playwright smoke test**
 
