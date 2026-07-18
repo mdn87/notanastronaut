@@ -5,6 +5,7 @@ export interface ControlOpts {
   accel: number; boostAccel: number;
   maxSpeed: number; boostMaxSpeed: number;
   linearDamping: number; pitchLimit: number;
+  align: number;
   bound: number; boundPush: number;
 }
 
@@ -12,7 +13,8 @@ export interface ControlOpts {
 export const DEFAULT_CONTROL: ControlOpts = {
   accel: 110, boostAccel: 200,
   maxSpeed: 80, boostMaxSpeed: 130,
-  linearDamping: 0.5, pitchLimit: 1.3,
+  linearDamping: 0.8, pitchLimit: 1.3,
+  align: 3.5,
   bound: 720, boundPush: 220,
 };
 
@@ -62,6 +64,38 @@ export function stepRoll(angle: number, target: number, speed: number, dt: numbe
   const d = target - angle;
   if (Math.abs(d) <= max) return target;
   return angle + Math.sign(d) * max;
+}
+
+/**
+ * Rotate `vel` toward `sense`·`heading` by an exponential angular ease
+ * (1 − e^(−align·dt)) — SPEED IS PRESERVED EXACTLY. `sense` is the COMMANDED
+ * travel direction (+1 forward/coast, −1 while reverse is held): deriving it
+ * from sign(v·h) would stall alignment at 90° and fight a forward U-turn.
+ * Exact anti-parallel (θ = π) is a deliberate no-op — no unique rotation
+ * axis; the next thrust step bends velocity off the axis. `heading` must be
+ * a unit vector (callers pass `headingFrom(...)`, which is unit by
+ * construction). Pure.
+ */
+export function alignVelocity(vel: Vec3, heading: Vec3, sense: 1 | -1, align: number, dt: number): Vec3 {
+  const s = Math.hypot(vel.x, vel.y, vel.z);
+  if (s < 1e-6) return vel;
+  const tx = heading.x * sense, ty = heading.y * sense, tz = heading.z * sense;
+  const vx = vel.x / s, vy = vel.y / s, vz = vel.z / s;
+  const dot = Math.max(-1, Math.min(1, vx * tx + vy * ty + vz * tz));
+  if (dot > 1 - 1e-9) return vel; // already aligned
+  let ax = vy * tz - vz * ty, ay = vz * tx - vx * tz, az = vx * ty - vy * tx;
+  const al = Math.hypot(ax, ay, az);
+  if (al < 1e-9) return vel;      // anti-parallel: no unique axis
+  ax /= al; ay /= al; az /= al;
+  const step = Math.acos(dot) * (1 - Math.exp(-align * dt));
+  const c = Math.cos(step), si = Math.sin(step);
+  // Rodrigues: v' = v·c + (k×v)·s + k(k·v)(1−c); k⊥v by construction so the last term ~0, kept for float safety
+  const ka = ax * vx + ay * vy + az * vz;
+  const rx = vx * c + (ay * vz - az * vy) * si + ax * ka * (1 - c);
+  const ry = vy * c + (az * vx - ax * vz) * si + ay * ka * (1 - c);
+  const rz = vz * c + (ax * vy - ay * vx) * si + az * ka * (1 - c);
+  const rl = Math.hypot(rx, ry, rz) || 1; // renormalize float drift, then restore the exact speed
+  return { x: (rx / rl) * s, y: (ry / rl) * s, z: (rz / rl) * s };
 }
 
 export interface SteerOpts {

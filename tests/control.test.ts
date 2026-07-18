@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { FlightInput } from '../src/core/flight-types';
+import type { Vec3 } from '../src/core/types';
 import {
   DEFAULT_CONTROL, headingFrom, rightFrom, integrateFacing, thrustForce, boundaryForce,
-  aimDelta, DEFAULT_STEER, stepRoll,
+  aimDelta, DEFAULT_STEER, stepRoll, alignVelocity,
 } from '../src/core/control';
 
 const I = (p: Partial<FlightInput> = {}): FlightInput => ({ yawDelta: 0, pitchDelta: 0, forward: 0, strafe: 0, ...p });
@@ -130,5 +131,54 @@ describe('stepRoll (barrel-roll spin)', () => {
   });
   it('holds at the target', () => {
     expect(stepRoll(2, 2, 16, 0.05)).toBe(2);
+  });
+});
+
+describe('alignVelocity (speed-preserving rotation)', () => {
+  const DT = 1 / 120;
+  const speed = (v: Vec3) => Math.hypot(v.x, v.y, v.z);
+  const angleTo = (v: Vec3, h: Vec3, sense: 1 | -1) =>
+    Math.acos(Math.max(-1, Math.min(1, ((v.x * h.x + v.y * h.y + v.z * h.z) * sense) / speed(v))));
+
+  it('no-op when parallel, at rest, and at exact 180° anti-parallel', () => {
+    const h = { x: 0, y: 0, z: 1 };
+    expect(alignVelocity({ x: 0, y: 0, z: 30 }, h, 1, 3.5, DT)).toEqual({ x: 0, y: 0, z: 30 });
+    expect(alignVelocity({ x: 0, y: 0, z: 0 }, h, 1, 3.5, DT)).toEqual({ x: 0, y: 0, z: 0 });
+    // no unique rotation axis at 180° — deliberate no-op; the next thrust step breaks the tie
+    expect(alignVelocity({ x: 0, y: 0, z: -30 }, h, 1, 3.5, DT)).toEqual({ x: 0, y: 0, z: -30 });
+  });
+
+  it('preserves speed through a full 90° realignment and converges < 5° in 2s', () => {
+    const h = { x: 1, y: 0, z: 0 };
+    let v: Vec3 = { x: 0, y: 0, z: 80 };
+    for (let i = 0; i < 240; i++) {
+      v = alignVelocity(v, h, 1, 3.5, DT);
+      expect(speed(v)).toBeCloseTo(80, 4); // spec bound: 1e-4 relative
+    }
+    expect(angleTo(v, h, 1)).toBeLessThan((5 * Math.PI) / 180);
+  });
+
+  it('forward U-turn past 90° keeps aligning — P1 regression: sense from input, not sign(v·h)', () => {
+    const h = headingFrom(Math.PI * 0.75, 0); // nose 135° away from the velocity
+    let v: Vec3 = { x: 0, y: 0, z: 60 };
+    let prev = angleTo(v, h, 1);
+    expect(prev).toBeGreaterThan(Math.PI / 2);
+    for (let i = 0; i < 600; i++) {
+      v = alignVelocity(v, h, 1, 3.5, DT);
+      const a = angleTo(v, h, 1);
+      expect(a).toBeLessThanOrEqual(prev + 1e-9); // never stalls, never reverses
+      prev = a;
+    }
+    expect(prev).toBeLessThan((5 * Math.PI) / 180);
+    expect(speed(v)).toBeCloseTo(60, 4);
+  });
+
+  it('sense −1 aligns toward −heading (reverse flight stays reverse)', () => {
+    const h = { x: 0, y: 0, z: 1 };
+    let v: Vec3 = { x: 30, y: 0, z: -30 };
+    for (let i = 0; i < 600; i++) v = alignVelocity(v, h, -1, 3.5, DT);
+    expect(v.z).toBeLessThan(0);
+    expect(Math.abs(v.x)).toBeLessThan(1);
+    expect(speed(v)).toBeCloseTo(Math.hypot(30, 30), 4);
   });
 });
