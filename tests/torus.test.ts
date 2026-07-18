@@ -35,4 +35,10 @@ describe('nearestImageDeltaInto', () => {
     nearestImageDeltaInto({ x: 629, y: 0, z: 0 }, { x: -629, y: 0, z: 0 }, 630, out);
     expect(out).toEqual({ x: 2, y: 0, z: 0 });
   });
+
+  it('wraps shortest deltas across the Y and Z seams', () => {
+    const out = { x: 0, y: 0, z: 0 };
+    nearestImageDeltaInto({ x: 0, y: 629, z: -629 }, { x: 0, y: -629, z: 629 }, 630, out);
+    expect(out).toEqual({ x: 0, y: 2, z: -2 });
+  });
 });
