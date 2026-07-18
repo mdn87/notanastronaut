@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -50 80 120" width="80" height="120" role="img" aria-label="Booster exhaust">
+  <!-- Flame is wide at the top (under the astronaut) and tapers to a tip below;
+       the scene scales/fades it by thrust so it ignites and glides out. -->
+  <path fill="#f7882b" opacity="0.92" d="M0 -46 C 22 -18 24 18 0 64 C -24 18 -22 -18 0 -46 Z"/>
+  <path fill="#ffd166" d="M0 -28 C 12 -6 12 18 0 44 C -12 18 -12 -6 0 -28 Z"/>
+</svg>

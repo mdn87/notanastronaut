@@ -12,14 +12,28 @@ export interface SurfaceInputs {
   forced: Surface | null;
   reducedMotion: boolean;
   webgl: boolean;
+  hasFinePointer: boolean;
+  isHome: boolean;
 }
 
-/** Spec rule: forced wins; reduced motion -> list; no WebGL -> list; else world. */
+/**
+ * forced 'list' always wins; forced 'world' applies ONLY on the home route (so a
+ * mission deep-link can never hide the portfolio behind an empty free-fly scene).
+ * Otherwise world needs home + a fine pointer + WebGL + motion.
+ */
 export function chooseSurface(s: SurfaceInputs): Surface {
-  if (s.forced) return s.forced;
+  if (s.forced === 'list') return 'list';
+  if (s.forced === 'world') return s.isHome ? 'world' : 'list';
   if (s.reducedMotion) return 'list';
   if (!s.webgl) return 'list';
+  if (!s.hasFinePointer) return 'list';
+  if (!s.isHome) return 'list';
   return 'world';
+}
+
+export function detectFinePointer(): boolean {
+  try { return matchMedia('(hover: hover) and (pointer: fine)').matches; }
+  catch { return false; }
 }
 
 export function detectWebgl(): boolean {
