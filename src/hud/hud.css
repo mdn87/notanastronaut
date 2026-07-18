@@ -117,9 +117,13 @@
 .flight-wrap.is-wrapped { color: var(--accent-text); border-color: var(--accent); }
 .flight-controls { color: var(--ink); font-size: 0.56rem; letter-spacing: 0; }
 
+@media (max-width: 768px) {
+  .flight-telemetry { top: 48px; right: 16px; bottom: auto; }
+}
+
 @media (max-width: 520px) {
   .flight-minimap { left: 8px; bottom: 8px; width: 76px; height: 76px; }
-  .flight-telemetry { top: 48px; right: 8px; bottom: auto; min-width: 0; padding: 7px; }
+  .flight-telemetry { right: 8px; min-width: 0; padding: 7px; }
   .flight-controls { display: none; }
   .flight-compass { bottom: 8px; width: min(190px, 45vw); height: 64px; }
 }
