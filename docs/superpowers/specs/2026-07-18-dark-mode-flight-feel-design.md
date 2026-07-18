@@ -104,14 +104,22 @@ square/grid materials, avatar materials) and applies:
   obstacleHi)` per spec (scene retains the `ObstacleSpec[]` it received).
 - Avatar: body/fin `MeshBasicMaterial.color`.
 
-Constructor takes an initial `Theme` (default light) so boot renders the
-stored choice without a flash of white.
+Constructor takes an initial `Theme` (default light) and the scene retains
+it as `currentTheme` (updated by `setTheme`). **`setObstacles` is
+theme-aware:** obstacles arrive later (`wireWorld` runs after construction)
+with light-baked `spec.color` values, so the scene never uses `spec.color`
+directly — it paints from `spec.density` via `densityColor(…, obstacleLo,
+obstacleHi)` using `currentTheme`, both at `setObstacles` time and on every
+`setTheme`. (`ObstacleSpec.color` remains the pure core's default-light
+painting for non-scene consumers/tests.) Without this, a stored dark theme
+would render light obstacles until the first manual toggle.
 
 ### DOM side: CSS variables only
 
 - `tokens.css`: add a `:root[data-theme="dark"]` block overriding the
   existing variables, plus new variables for values currently hardcoded in
-  `hud.css`: panel/strip background (`--panel`), label halo (`--halo`,
+  `hud.css`: panel/strip backgrounds (`--panel-strip`, `--panel-card`),
+  label halo (`--halo`,
   today's white text-shadow), readout color + glow (`--readout`,
   `--readout-glow`, today `#38bdf8`), speed text (`--speed`, today
   `#4ab3d4`).
@@ -120,16 +128,25 @@ stored choice without a flash of white.
 
 ### Wiring
 
-- `main.ts`: before rendering anything, set
-  `document.documentElement.dataset.theme = readStoredTheme(localStorage.getItem('naa-theme'))`.
-  List mode needs nothing else — it inherits the CSS variables.
-- `mount.ts`: passes `THEMES[readStoredTheme(…)]` as the initial theme when
+- `index.html`: a tiny inline `<script>` in `<head>`, **before** the
+  `tokens.css` link, sets `document.documentElement.dataset.theme` from
+  `localStorage` inside a `try/catch`. Module scripts (`main.ts`) execute
+  after first paint, so only a pre-paint bootstrap guarantees no light
+  flash for a stored dark theme. List mode needs nothing else — it inherits
+  the CSS variables.
+- `theme.ts` also exports guarded storage helpers (`getStoredTheme()` /
+  `storeTheme(name)`) that wrap `localStorage` in `try/catch` — access can
+  throw when storage is disabled — falling back to `'light'` / a no-op.
+  All TS code goes through these; only the inline bootstrap duplicates the
+  read (it must be self-contained).
+- `mount.ts`: passes `THEMES[getStoredTheme()]` as the initial theme when
   constructing `WorldScene`, so the first rendered frame is already themed.
 - `flight-hud.ts`: nav gains a `[ dark ]` / `[ light ]` button (styled like
   `[ list ]`, `pointer-events: auto`) showing the theme you'd switch TO.
   `FlightHud` takes an `onThemeToggle` callback + initial name.
 - `wire.ts`: owns `applyTheme(name)` — sets `data-theme`, writes
-  `localStorage`, calls `scene.setTheme(THEMES[name])`, updates the button
+  storage via `storeTheme` (guarded), calls `scene.setTheme(THEMES[name])`,
+  updates the button
   label. Toggling never touches the physics world.
 
 ## 2. Palette
@@ -152,35 +169,63 @@ stored choice without a flash of white.
 | CSS `--sky-line` | `#cfe4f0` | `#4a3b30` |
 | CSS `--sky-faint` | `#e8f1f7` | `#2a2d31` |
 | CSS `--accent` / `--accent-text` | `#e8743b` / `#a24116` | `#ff8c4d` / `#ffb27a` |
-| CSS `--panel` (strip/panel bg) | `rgba(255,255,255,.92)` | `rgba(30,33,37,.92)` |
+| CSS `--panel-strip` (`.hud-strip` bg) | `rgba(255,255,255,.92)` | `rgba(30,33,37,.92)` |
+| CSS `--panel-card` (`.hud-panel` bg) | `rgba(255,255,255,.94)` | `rgba(30,33,37,.94)` |
 | CSS `--halo` (label shadow) | `#ffffff` | `#1e2125` |
 | CSS `--readout` | `#38bdf8` | `#ffa64d` |
+| CSS `--readout-glow-soft` (`0 0 6px`) | `rgba(56,189,248,.55)` | `rgba(255,166,77,.55)` |
+| CSS `--readout-glow-tight` (`0 0 1px`) | `rgba(56,189,248,.9)` | `rgba(255,166,77,.9)` |
 | CSS `--speed` | `#4ab3d4` | `#ffa64d` |
+
+The strip and panel keep their distinct opacities (`.92` vs `.94`) as
+separate tokens, and the readout keeps both of its current glow layers — the
+light column of this table is byte-for-byte today's rendered values.
 
 The light theme paints *denser = darker* on white; dark mode inverts the
 luminance direction to *denser = hotter* so density still reads. Exact dark
 hexes may shift slightly during in-browser tuning; the slot structure is
-fixed. Contrast target: HUD text meets WCAG AA against `--bg`/`--panel`.
+fixed. Contrast target: HUD text meets WCAG AA against `--bg` and the
+panel tokens.
 
-## 3. Flight: velocity-alignment steering force
+## 3. Flight: speed-preserving velocity alignment
+
+> Revised after review: the original `alignForce = align·(ĥ·s·dir − v)` had
+> two behavioral flaws. (1) Deriving travel sense from `sign(vel·heading)`
+> makes alignment die at 90° and actively fight a forward U-turn beyond it —
+> exactly the maneuver the feature exists for. (2) The force has a component
+> opposite `v` (at 90° misalignment, `d|v|/dt = −align·|v|`), so a hard turn
+> scrubbed roughly half the ship's speed before damping. The design is now a
+> pure **rotation** of the velocity vector (speed preserved exactly), with
+> travel sense taken from **commanded input**, not velocity.
 
 New pure function in `src/core/control.ts`:
 
 ```
-alignForce(vel, heading, align): Vec3
-  s   = |vel|                          // speed
-  dir = (vel·heading >= 0) ? +1 : -1   // preserve travel sense
-  F   = align * (heading * s * dir - vel)
+alignVelocity(vel, heading, sense, align, dt): Vec3
+  s = |vel|;  if s < 1e-6           return vel        // at rest: nothing to steer
+  target = sense · ĥ                                  // sense ∈ {+1, −1}
+  θ = angle(v̂, target)
+  if θ ≈ 0                          return vel        // already aligned
+  if θ ≈ π (axis ‖ zero)            return vel        // degenerate; thrust breaks the tie
+  axis = normalize(v̂ × target)
+  return rotate(vel, axis, θ · (1 − e^(−align·dt)))   // |result| == s exactly
 ```
 
-- Redirects momentum toward the heading **axis** without fighting reverse
-  flight (S key): flying backward aligns to −heading, so braking/reversing
-  still works.
-- Zero when velocity is already parallel to the heading; magnitude grows
-  with misalignment and speed. Mass is 1, so force = acceleration.
-- Applied **every fixed step** in `dart.ts` (`addForce` alongside thrust +
-  boundary), including while coasting — a glide curves to where you point,
-  which is the point of the feature.
+- **Travel sense comes from input intent:** `sense = input.forward < 0 ? −1
+  : +1`, computed in `dart.ts` from the *commanded* thrust. Holding W
+  through a U-turn keeps `sense = +1`, so momentum keeps rotating toward the
+  nose through 90° and beyond. Holding S aligns toward −heading, so
+  braking/reversing still works. Coasting defaults to `+1` — a glide curves
+  to where you point, which is the point of the feature.
+- **Speed is preserved exactly** — the update rotates `v̂` and rescales by
+  the original `s`. The exponential angle ease (`1 − e^(−align·dt)`) is
+  deterministic at the fixed timestep.
+- The exact-180° anti-parallel case is a deliberate no-op (no unique
+  rotation axis); the very next thrust step bends velocity off the axis and
+  alignment takes over.
+- Applied **every fixed step** in `dart.ts` after `world.step()`, via
+  `setLinvel` — the same pattern as the existing speed cap, not `addForce`
+  (a force formulation is what caused the speed-scrub flaw).
 - Tunables in `ControlOpts` / `DEFAULT_CONTROL`:
   - `align: 3.5` (per-second alignment rate; starting value)
   - `linearDamping: 0.5 → 0.8` (release-glide stops in ~100u instead of
@@ -212,15 +257,40 @@ without steering wobble shaking the frame.
   unchanged.
 - `tests/field.test.ts`: `densityColor` default palette unchanged; custom
   palette endpoints honored.
-- `tests/control.test.ts`: `alignForce` — zero when parallel; converges
-  velocity direction to heading under Euler steps with speed roughly
-  preserved; aligns to −heading when flying backward; zero vector at rest.
+- `tests/control.test.ts`: `alignVelocity` —
+  - no-op when parallel, at rest, and at exact 180° anti-parallel;
+  - **speed preserved**: `|result| == |vel|` within 1e-4 relative, per call
+    and accumulated across a full simulated 90° realignment;
+  - **forward U-turn across 90°** (the P1 regression): `vel = +Z`,
+    `heading = −Z`, `sense = +1` — the angle to heading strictly decreases
+    every step until parallel; alignment never stalls or reverses past 90°;
+  - `sense = −1` aligns toward −heading (reverse flight);
+  - convergence: at `align = 3.5`, a 90° misalignment closes to < 5° within
+    2 simulated seconds of 120 Hz steps.
+- **Scene integration** (new `tests/world-scene.test.ts` or extension of
+  `world-mount`): after `setTheme(dark)`, assert **every mutable slot**
+  changed — background, galaxy `aColor` endpoints, grid `uColor`, square
+  colors, obstacle colors, avatar body/fin materials — so a forgotten
+  buffer fails a test, not a manual QA pass. Include the ordering
+  regression: construct with dark initial theme, call `setObstacles`
+  *afterwards*, assert the obstacle colors are dark-palette (item: stored
+  dark must not render light obstacles).
+- **Dart integration** (`tests/dart.test.ts`, new): a turn/coast sequence
+  through `DartPhysics.step` — thrust +Z, yaw 90°+, coast — asserting the
+  velocity direction converges to the new heading with speed within bounds,
+  proving `dart.ts` actually applies `alignVelocity`. This needs Rapier
+  WASM under vitest, which is unproven in this repo; the plan task attempts
+  it first, and if wasm loading is infeasible falls back to an e2e
+  assertion (drag a ~90° turn, release, assert the readout trajectory
+  curves toward the new heading instead of continuing straight).
 - `tests/flight-hud.test.ts`: toggle button renders, fires callback,
   label swaps.
-- `tests/world-wire.test.ts`: `applyTheme` writes `localStorage` + sets
-  `data-theme`.
+- `tests/world-wire.test.ts`: `applyTheme` writes storage via the guarded
+  helper + sets `data-theme` on `document.documentElement`.
 - e2e `smoke.spec.ts`: update if it asserts on background color; add a
-  toggle click → body/`data-theme` assertion.
+  toggle click → `html[data-theme="dark"]` assertion (the attribute lives
+  on `documentElement`, matching the wiring), and a reload → still-dark
+  persistence check.
 - Full gate before pushing: `npm run typecheck && npm test && npm run build
   && npm run budgets` (+ `npm run e2e`); manual preview pass on both themes
   with screenshots (light + dark, plus flight-feel check).
@@ -230,8 +300,12 @@ without steering wobble shaking the frame.
 - **Uncommitted pre-work (Task 0) may not pass the gate.** If verification
   fails, stop and report before committing anything; this feature doesn't
   start until the tree is clean.
-- **Alignment force vs. Rapier collisions:** the force redirects
-  post-collision bounce velocity toward the nose, which slightly softens
-  ricochets. Acceptable at `align ≈ 3.5`; revisit if bounces feel dead.
+- **Velocity alignment vs. Rapier collisions:** the per-step rotation also
+  swings post-collision bounce velocity toward the nose, which slightly
+  softens ricochets (speed is preserved, so bounces lose direction, not
+  energy). Acceptable at `align ≈ 3.5`; revisit if bounces feel dead.
+- **Rapier under vitest is unproven** — the dart integration test has a
+  specified e2e fallback (see Testing) so coverage of the dart↔alignment
+  wiring doesn't silently evaporate if wasm won't load in node.
 - **Buffer rewrites on toggle** are O(n) over ~34k points — measured cost is
   a few ms, toggle-only; no per-frame cost.
