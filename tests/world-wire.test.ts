@@ -1,11 +1,22 @@
 // tests/world-wire.test.ts
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { GRID_EDGE } from '../src/core/grid';
 import type { WorldScene } from '../src/world/scene';
 
 const hudMocks = vi.hoisted(() => {
-  const instances: Array<{ setSpeed: ReturnType<typeof vi.fn>; dispose: ReturnType<typeof vi.fn> }> = [];
-  const FlightHud = vi.fn(function (this: { setSpeed: ReturnType<typeof vi.fn>; setReadout: ReturnType<typeof vi.fn>; dispose: ReturnType<typeof vi.fn> }) {
-    this.setSpeed = vi.fn(); this.setReadout = vi.fn(); this.dispose = vi.fn(); instances.push(this);
+  const instances: Array<{
+    setNavigation: ReturnType<typeof vi.fn>;
+    setSpeed: ReturnType<typeof vi.fn>;
+    setReadout: ReturnType<typeof vi.fn>;
+    dispose: ReturnType<typeof vi.fn>;
+  }> = [];
+  const FlightHud = vi.fn(function (this: {
+    setNavigation: ReturnType<typeof vi.fn>;
+    setSpeed: ReturnType<typeof vi.fn>;
+    setReadout: ReturnType<typeof vi.fn>;
+    dispose: ReturnType<typeof vi.fn>;
+  }) {
+    this.setNavigation = vi.fn(); this.setSpeed = vi.fn(); this.setReadout = vi.fn(); this.dispose = vi.fn(); instances.push(this);
   });
   return { FlightHud, instances };
 });
@@ -28,6 +39,7 @@ const dartMocks = vi.hoisted(() => {
           heading: { x: 0, y: 0, z: -1 },
           yaw: 0, pitch: 0, bank: 0, throttle: 0,
           speed: 0, surge: 0, strafe: 0,
+          wrapped: false,
         })),
         obstaclePositions: vi.fn(() => new Float32Array(0)),
         dispose: vi.fn(),
@@ -90,8 +102,20 @@ describe('wireWorld (free-fly)', () => {
     // field wiring: setObstacles received a non-empty obstacle array
     expect((scene.setObstacles as ReturnType<typeof vi.fn>)).toHaveBeenCalledTimes(1);
     expect((scene.setObstacles as ReturnType<typeof vi.fn>).mock.calls[0]![0]).toEqual(expect.arrayContaining([expect.any(Object)]));
-    // DartPhysics.create received the field as its second argument (non-empty array)
-    expect(dartMocks.DartPhysics.create).toHaveBeenCalledWith(expect.anything(), expect.arrayContaining([expect.any(Object)]));
+    // DartPhysics receives the shared toroidal edge and the obstacle field.
+    expect(dartMocks.DartPhysics.create).toHaveBeenCalledWith({ wrapEdge: GRID_EDGE }, expect.arrayContaining([expect.any(Object)]));
+    expect(hudMocks.FlightHud).toHaveBeenCalledWith(expect.anything(), { edge: GRID_EDGE });
+    expect(hudMocks.instances[0]!.setNavigation).toHaveBeenCalledTimes(1);
+    expect(hudMocks.instances[0]!.setNavigation).toHaveBeenCalledWith({
+      speed: 0,
+      position: { x: 0, y: 0, z: 0 },
+      heading: { x: 0, y: 0, z: -1 },
+      yaw: 0,
+      pitch: 0,
+      wrapped: false,
+    });
+    expect(hudMocks.instances[0]!.setSpeed).not.toHaveBeenCalled();
+    expect(hudMocks.instances[0]!.setReadout).not.toHaveBeenCalled();
     cleanup();
   });
 
