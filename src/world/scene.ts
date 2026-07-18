@@ -7,7 +7,7 @@ import { makeSpiralGalaxy } from '../core/galaxy';
 import { makeGridLines } from '../core/grid';
 import { makeVolumeBodies } from '../core/parallax';
 import { THEMES, type Theme } from '../core/theme';
-import { applyTheme, type ThemeTargets, type AttrTarget } from './scene-theme';
+import { applyTheme, type ThemeTargets, type AttrTarget, type ColorTarget } from './scene-theme';
 
 // galaxy-thruster.svg lives in public/ — reference it by URL, never `import` it.
 const THRUSTER_URL = '/artwork/galaxy/galaxy-thruster.svg';
@@ -198,11 +198,21 @@ export class WorldScene {
 
   private targets(): ThemeTargets {
     const attr = (g: THREE.BufferGeometry) => g.getAttribute('aColor') as unknown as AttrTarget;
+    // The palette carries sRGB byte-fractions. Targets consumed by three's MANAGED
+    // pipeline (background clear, MeshBasicMaterial) store working-space (linear)
+    // colors and re-encode to sRGB on output, so they must convert on set — else
+    // they render double-brightened (washed out). The grid uniform and the aColor
+    // point attributes feed CUSTOM shaders that write values verbatim to the
+    // framebuffer, so those stay raw; converting them would darken the legacy look.
+    const srgb = (c: THREE.Color): ColorTarget => ({
+      get r() { return c.r; }, get g() { return c.g; }, get b() { return c.b; },
+      setRGB: (r: number, g: number, b: number) => c.setRGB(r, g, b, THREE.SRGBColorSpace),
+    });
     return {
-      background: this.bgColor,
+      background: srgb(this.bgColor),
       gridColor: this.gridMat.uniforms.uColor!.value as THREE.Color,
-      avatarBody: this.bodyMat.color,
-      avatarFins: this.finMat.color,
+      avatarBody: srgb(this.bodyMat.color),
+      avatarFins: srgb(this.finMat.color),
       galaxyColor: attr(this.galaxy.geometry),
       squareColor: attr(this.squares.geometry),
       obstacleColor: this.obstacles ? attr(this.obstacles.geometry) : null,
