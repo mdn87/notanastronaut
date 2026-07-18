@@ -11,9 +11,9 @@ import { THEMES, type Theme } from '../core/theme';
 import { applyTheme, type ThemeTargets, type AttrTarget, type ColorTarget } from './scene-theme';
 
 const ARROW_LEN = 3.6;
-// Chase cam: CAM_TURN is how fast the trail eases toward the facing (low = the
-// camera barely swings when you look); CAM_LOOK_LAG keeps the avatar centered.
-const CAM_BACK = 11, CAM_UP = 3.4, CAM_LAG = 5, CAM_LOOK_LAG = 12, CAM_TURN = 2;
+// Chase cam: CAM_TURN swings the trail behind the new facing (high = avatar-cam
+// tight); CAM_LOOK_LAG keeps the avatar pinned near screen center.
+const CAM_BACK = 11, CAM_UP = 3.4, CAM_LAG = 12, CAM_LOOK_LAG = 20, CAM_TURN = 7;
 const CAM_PITCH_MAX = 0.5; // cap the trail's elevation (rad ≈ 29°) so a steep climb/dive never swings the camera near vertical (which would flip the lookAt up-vector)
 const FORWARD = new THREE.Vector3(0, 0, 1);
 const EXTENT = 700;        // vast, explorable galaxy — matches the flight soft-bound
