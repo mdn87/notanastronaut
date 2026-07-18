@@ -36,13 +36,90 @@
 .hud-panel .tagline { font-family: var(--font-script); font-style: italic; color: var(--ink); margin-top: 0; font-size: 1.05rem; }
 .hud-panel[hidden] { display: none; }
 
-/* Free-fly HUD: floating blue-digital position readout + monospace speed. */
-.flight-readout {
-  position: fixed; left: 0; top: 0; pointer-events: none;
-  font: 600 13px/1 ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
-  letter-spacing: 0.12em; color: #38bdf8;
-  text-shadow: 0 0 6px rgba(56, 189, 248, 0.55), 0 0 1px rgba(56, 189, 248, 0.9);
-  opacity: 0; transition: opacity 120ms linear; white-space: nowrap;
-  will-change: transform, opacity;
+/* Free-fly HUD: three small, opaque instrument regions. */
+.flight-minimap,
+.flight-compass,
+.flight-telemetry {
+  position: fixed;
+  z-index: 1;
+  background: var(--bg);
+  border: 1px solid var(--sky);
+  color: var(--sky-text);
+  pointer-events: none;
+  font: 600 0.68rem/1 var(--font-mono);
+  letter-spacing: 0.08em;
 }
-.hud-strip .flight-speed { font-family: ui-monospace, Menlo, Consolas, monospace; color: #4ab3d4; }
+
+.flight-minimap {
+  left: 16px; bottom: 16px; width: 96px; height: 96px;
+  overflow: hidden;
+}
+.flight-minimap::before,
+.flight-minimap::after {
+  content: "";
+  position: absolute;
+  background: var(--sky-line);
+}
+.flight-minimap::before { left: 10%; right: 10%; top: 50%; height: 1px; }
+.flight-minimap::after { top: 10%; bottom: 10%; left: 50%; width: 1px; }
+.flight-minimap-grid {
+  position: absolute; inset: 10%; border: 1px solid var(--sky-line);
+}
+.flight-minimap-marker {
+  position: absolute; z-index: 2; width: 7px; height: 7px;
+  margin: -3px 0 0 -3px; background: var(--accent);
+}
+.flight-minimap-vector {
+  position: absolute; z-index: 2; width: 22px; height: 2px;
+  margin-top: -1px; background: var(--sky-text);
+  transform-origin: 0 50%;
+}
+
+.flight-compass {
+  left: 50%; bottom: 16px; width: min(240px, 42vw); height: 72px;
+  overflow: hidden; transform: translateX(-50%);
+}
+.flight-compass-band {
+  position: absolute; left: 8%; right: 8%; top: 8px; height: 18px;
+  display: flex; justify-content: space-around; align-items: center;
+  border-top: 1px solid var(--sky-line); border-bottom: 1px solid var(--sky-line);
+  color: var(--sky-text); will-change: transform;
+}
+.flight-compass-cue {
+  position: absolute; left: 50%; top: 5px; width: 1px; height: 24px;
+  background: var(--sky-text); transform: translateX(-50%);
+}
+.flight-gimbal {
+  position: absolute; left: 50%; bottom: 8px; width: 28px; height: 28px;
+  border: 1px solid var(--sky); border-radius: 50%;
+  transform: translateX(-50%); transform-origin: 50% 50%;
+  will-change: transform;
+}
+.flight-gimbal::before,
+.flight-gimbal::after,
+.flight-gimbal span {
+  content: ""; position: absolute; background: var(--sky-text);
+}
+.flight-gimbal::before { left: 5px; right: 5px; top: 50%; height: 1px; }
+.flight-gimbal::after { top: 5px; bottom: 5px; left: 50%; width: 1px; }
+.flight-gimbal span { left: 50%; top: -5px; width: 1px; height: 38px; transform: translateX(-50%); opacity: 0.55; }
+
+.flight-telemetry {
+  right: 16px; bottom: 16px; min-width: 142px; padding: 8px 10px;
+  display: grid; gap: 6px; white-space: nowrap;
+}
+.flight-speed { color: var(--sky-text); }
+.flight-xyz { color: var(--ink); }
+.flight-wrap {
+  border-top: 1px solid var(--sky-line); padding-top: 5px;
+  color: var(--sky-text);
+}
+.flight-wrap.is-wrapped { color: var(--accent-text); border-color: var(--accent); }
+.flight-controls { color: var(--ink); font-size: 0.56rem; letter-spacing: 0; }
+
+@media (max-width: 520px) {
+  .flight-minimap { left: 8px; bottom: 8px; width: 76px; height: 76px; }
+  .flight-telemetry { right: 8px; bottom: 8px; min-width: 0; padding: 7px; }
+  .flight-controls { display: none; }
+  .flight-compass { bottom: 8px; width: min(190px, 45vw); height: 64px; }
+}
