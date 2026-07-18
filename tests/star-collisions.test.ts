@@ -29,6 +29,7 @@ const field = (mass: number): SpiralField => ({
   colors: new Float32Array([0.29, 0.7, 0.83]),
   collisionRadii: new Float32Array([2]),
   masses: new Float32Array([mass]),
+  mixes: new Float32Array([0.3]),
   count: 1,
 });
 
@@ -39,6 +40,7 @@ const twoStarField: SpiralField = {
   colors: new Float32Array([0.29, 0.7, 0.83, 0.09, 0.2, 0.29]),
   collisionRadii: new Float32Array([1, 3]),
   masses: new Float32Array([0.2, 6]),
+  mixes: new Float32Array([0.1, 0.9]),
   count: 2,
 };
 

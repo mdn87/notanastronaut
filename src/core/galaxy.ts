@@ -1,9 +1,11 @@
 // src/core/galaxy.ts
 import { mulberry32 } from './rng';
+import type { Rgb } from './types';
+import { THEMES } from './theme';
 
 export interface SpiralField {
   positions: Float32Array; sizes: Float32Array; alphas: Float32Array; colors: Float32Array;
-  collisionRadii: Float32Array; masses: Float32Array; count: number;
+  collisionRadii: Float32Array; masses: Float32Array; mixes: Float32Array; count: number;
 }
 export interface SpiralOpts {
   count?: number; arms?: number; radius?: number; thickness?: number; twist?: number; coreFraction?: number;
@@ -11,11 +13,20 @@ export interface SpiralOpts {
 
 export const GALAXY_MAX_POINTS = 40000;
 
-// Brand cyan (arms) -> deep navy (core).
-const CYAN = { r: 0x4a / 255, g: 0xb3 / 255, b: 0xd4 / 255 };
-const NAVY = { r: 0x16 / 255, g: 0x32 / 255, b: 0x4a / 255 };
-
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+
+/** Lerp arm->core per point by mix (m = coreness²). Pure; used for live re-theming. */
+export function paintStarColors(mixes: Float32Array, arm: Rgb, core: Rgb): Float32Array {
+  const out = new Float32Array(mixes.length * 3);
+  for (let i = 0; i < mixes.length; i++) {
+    const m = mixes[i]!;
+    out[i * 3] = arm.r + (core.r - arm.r) * m;
+    out[i * 3 + 1] = arm.g + (core.g - arm.g) * m;
+    out[i * 3 + 2] = arm.b + (core.b - arm.b) * m;
+  }
+  return out;
+}
+
 export function starMass(visualSize: number, darkness: number): number {
   const sizeT = clamp01((visualSize - 0.8) / 2.1);
   const sizeFactor = 0.7 + 0.9 * sizeT;
@@ -46,9 +57,9 @@ export function makeSpiralGalaxy(seed: number, opts: SpiralOpts = {}): SpiralFie
   const positions = new Float32Array(count * 3);
   const sizes = new Float32Array(count);
   const alphas = new Float32Array(count);
-  const colors = new Float32Array(count * 3);
   const collisionRadii = new Float32Array(count);
   const masses = new Float32Array(count);
+  const mixes = new Float32Array(count);
 
   for (let i = 0; i < count; i++) {
     const core = rnd() < coreFraction;
@@ -74,9 +85,8 @@ export function makeSpiralGalaxy(seed: number, opts: SpiralOpts = {}): SpiralFie
     const sizeT = clamp01((sizes[i]! - 0.8) / 2.1);
     collisionRadii[i] = 1.2 + 2 * sizeT;
     masses[i] = starMass(sizes[i]!, m);
-    colors[i * 3] = CYAN.r + (NAVY.r - CYAN.r) * m;
-    colors[i * 3 + 1] = CYAN.g + (NAVY.g - CYAN.g) * m;
-    colors[i * 3 + 2] = CYAN.b + (NAVY.b - CYAN.b) * m;
+    mixes[i] = m;
   }
-  return { positions, sizes, alphas, colors, collisionRadii, masses, count };
+  const colors = paintStarColors(mixes, THEMES.light.starArm, THEMES.light.starCore);
+  return { positions, sizes, alphas, colors, collisionRadii, masses, mixes, count };
 }

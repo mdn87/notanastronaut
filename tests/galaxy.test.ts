@@ -1,6 +1,7 @@
 // tests/galaxy.test.ts
 import { describe, expect, it } from 'vitest';
-import { makeSpiralGalaxy, GALAXY_MAX_POINTS, starMass } from '../src/core/galaxy';
+import { makeSpiralGalaxy, paintStarColors, GALAXY_MAX_POINTS, starMass } from '../src/core/galaxy';
+import { THEMES } from '../src/core/theme';
 
 describe('makeSpiralGalaxy', () => {
   it('is deterministic for a seed and differs across seeds', () => {
@@ -57,5 +58,23 @@ describe('makeSpiralGalaxy', () => {
     expect(f.count).toBe(GALAXY_MAX_POINTS);
     for (const v of f.positions) expect(Number.isFinite(v)).toBe(true);
     for (const a of f.alphas) { expect(a).toBeGreaterThan(0); expect(a).toBeLessThanOrEqual(1); }
+  });
+});
+
+describe('paintStarColors / mixes', () => {
+  it('exposes per-point mixes in [0,1]; colors are exactly the light paint of mixes', () => {
+    const f = makeSpiralGalaxy(7, { count: 4000 });
+    expect(f.mixes.length).toBe(4000);
+    for (const m of f.mixes) { expect(m).toBeGreaterThanOrEqual(0); expect(m).toBeLessThanOrEqual(1); }
+    const repaint = paintStarColors(f.mixes, THEMES.light.starArm, THEMES.light.starCore);
+    expect(Array.from(f.colors)).toEqual(Array.from(repaint));
+  });
+
+  it('paintStarColors endpoints: mix 0 -> arm, mix 1 -> core; 0.5 between', () => {
+    const arm = { r: 0.1, g: 0.2, b: 0.3 }, core = { r: 0.9, g: 0.8, b: 0.7 };
+    const out = paintStarColors(new Float32Array([0, 1, 0.5]), arm, core);
+    expect(out[0]).toBeCloseTo(0.1, 6); expect(out[1]).toBeCloseTo(0.2, 6); expect(out[2]).toBeCloseTo(0.3, 6);
+    expect(out[3]).toBeCloseTo(0.9, 6); expect(out[4]).toBeCloseTo(0.8, 6); expect(out[5]).toBeCloseTo(0.7, 6);
+    expect(out[6]).toBeCloseTo(0.5, 6); expect(out[7]).toBeCloseTo(0.5, 6); expect(out[8]).toBeCloseTo(0.5, 6);
   });
 });

@@ -10,6 +10,7 @@ const field: SpiralField = {
   colors: new Float32Array([0.2, 0.6, 0.8]),
   collisionRadii: new Float32Array([1.5]),
   masses: new Float32Array([1]),
+  mixes: new Float32Array([0.3]),
   count: 1,
 };
 
