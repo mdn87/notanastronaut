@@ -1,7 +1,7 @@
-import type { Vec3 } from './types';
+import type { Rgb, Vec3 } from './types';
 import { mulberry32 } from './rng';
 
-export interface Rgb { r: number; g: number; b: number }
+export type { Rgb };
 
 export interface ObstacleSpec { pos: Vec3; radius: number; density: number; mass: number; color: Rgb }
 

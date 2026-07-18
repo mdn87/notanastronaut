@@ -1,5 +1,7 @@
 export interface Vec3 { x: number; y: number; z: number; }
 
+export interface Rgb { r: number; g: number; b: number }
+
 export interface NodeDef {
   id: string;            // slug, unique
   title: string;         // "Agent Ops"
