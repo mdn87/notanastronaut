@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { makeObstacleField, densityColor, obstacleMass } from '../src/core/field';
+import { makeObstacleField, densityColor, obstacleMass, DENSITY_MIN, DENSITY_MAX } from '../src/core/field';
 
 const sum = (c: { r: number; g: number; b: number }) => c.r + c.g + c.b;
 
@@ -42,6 +42,18 @@ describe('densityColor(...)', () => {
     const mid = sum(densityColor(7.5));
     expect(mid).toBeLessThan(sum(densityColor(0.2)));
     expect(mid).toBeGreaterThan(sum(densityColor(15)));
+  });
+
+  it('default palette is unchanged (legacy light values at the endpoints)', () => {
+    const lo = densityColor(DENSITY_MIN), hi = densityColor(DENSITY_MAX);
+    expect(Math.round(lo.r * 255)).toBe(0x7f); expect(Math.round(lo.g * 255)).toBe(0xc9); expect(Math.round(lo.b * 255)).toBe(0xe0);
+    expect(Math.round(hi.r * 255)).toBe(0x0a); expect(Math.round(hi.g * 255)).toBe(0x14); expect(Math.round(hi.b * 255)).toBe(0x1e);
+  });
+
+  it('honors a custom palette: endpoints hit lo/hi exactly', () => {
+    const lo = { r: 1, g: 0.5, b: 0 }, hi = { r: 0, g: 0, b: 1 };
+    expect(densityColor(0.2, 0.2, 15, lo, hi)).toEqual(lo);
+    expect(densityColor(15, 0.2, 15, lo, hi)).toEqual(hi);
   });
 });
 

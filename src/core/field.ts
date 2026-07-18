@@ -1,5 +1,6 @@
 import type { Rgb, Vec3 } from './types';
 import { mulberry32 } from './rng';
+import { THEMES } from './theme';
 
 export type { Rgb };
 
@@ -16,18 +17,17 @@ export interface FieldOpts {
   greeterZ?: number; greeterRadius?: number; maxObstacles?: number;
 }
 
-// Low density -> light cyan; high density -> near-black. Denser = darker.
-const LIGHT: Rgb = { r: 0x7f / 255, g: 0xc9 / 255, b: 0xe0 / 255 };
-const DARK: Rgb = { r: 0x0a / 255, g: 0x14 / 255, b: 0x1e / 255 };
+/** Generation-range density defaults — exported so re-theming can reproduce spec colors from stored density. */
+export const DENSITY_MIN = 0.2;
+export const DENSITY_MAX = 15;
 
-/** Denser -> darker. Monotonic lerp from LIGHT (minD) to DARK (maxD). */
-export function densityColor(density: number, minD = 0.2, maxD = 15): Rgb {
+/** Denser -> closer to `hi`. Monotonic lerp; default palette = light theme (denser = darker). */
+export function densityColor(
+  density: number, minD = DENSITY_MIN, maxD = DENSITY_MAX,
+  lo: Rgb = THEMES.light.obstacleLo, hi: Rgb = THEMES.light.obstacleHi,
+): Rgb {
   const t = Math.max(0, Math.min(1, (density - minD) / (maxD - minD)));
-  return {
-    r: LIGHT.r + (DARK.r - LIGHT.r) * t,
-    g: LIGHT.g + (DARK.g - LIGHT.g) * t,
-    b: LIGHT.b + (DARK.b - LIGHT.b) * t,
-  };
+  return { r: lo.r + (hi.r - lo.r) * t, g: lo.g + (hi.g - lo.g) * t, b: lo.b + (hi.b - lo.b) * t };
 }
 
 /**
@@ -39,7 +39,7 @@ export function densityColor(density: number, minD = 0.2, maxD = 15): Rgb {
  */
 export function obstacleMass(radius: number, density: number, opts: FieldOpts = {}): number {
   const rMin = opts.minRadius ?? 2, rMax = opts.maxRadius ?? 9;
-  const dMin = opts.minDensity ?? 0.2, dMax = opts.maxDensity ?? 15;
+  const dMin = opts.minDensity ?? DENSITY_MIN, dMax = opts.maxDensity ?? DENSITY_MAX;
   const sLo = opts.sizeMassLo ?? 0.7, sHi = opts.sizeMassHi ?? 1.6;   // size's pull on mass
   const dfLo = opts.densMassLo ?? 0.4, dfHi = opts.densMassHi ?? 4.0;  // density's pull (wider -> can dominate)
   const kLo = opts.massClampLo ?? 0.1, kHi = opts.massClampHi ?? 8;
@@ -59,7 +59,7 @@ export function makeObstacleField(seed: number, opts: FieldOpts = {}): ObstacleS
   const extent = opts.extent ?? 300;
   const spawnClear = opts.spawnClear ?? 55;
   const rMin = opts.minRadius ?? 3, rMax = opts.maxRadius ?? 12;
-  const dMin = opts.minDensity ?? 0.2, dMax = opts.maxDensity ?? 15;
+  const dMin = opts.minDensity ?? DENSITY_MIN, dMax = opts.maxDensity ?? DENSITY_MAX;
   const clusterCount = opts.clusterCount ?? 800;
   const perMin = opts.perClusterMin ?? 5, perMax = opts.perClusterMax ?? 10;
   const clusterRadius = opts.clusterRadius ?? 55;
