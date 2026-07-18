@@ -194,10 +194,10 @@ test('dark mode: toggle rethemes the galaxy and persists across reload', async (
       let d = 0, w = 0;
       for (let p = 0; p < px.length; p += 4) {
         const r = px[p]!, g = px[p + 1]!, b = px[p + 2]!;
-        // Dark theme's clear color (0x1e2125) round-trips through three.js's sRGB
-        // output encoding to ~rgb(96,101,106) on readback — not literally near-black.
-        // 150 sits with a wide margin above that and well below the light theme's
-        // pure-white (255,255,255) corner, so it cleanly discriminates the two themes.
+        // Dark theme's clear color (0x1e2125) reads back at ~rgb(30,33,37). The
+        // threshold stays a generous 150 — far above any dark-gray reading and far
+        // below the light theme's pure-white (255,255,255) corner — so it cleanly
+        // discriminates the two themes without being sensitive to encoding details.
         if (r < 150 && g < 150 && b < 150) d++;
         if (r > 120 && r > b + 30) w++;
       }
