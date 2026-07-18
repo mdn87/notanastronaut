@@ -77,6 +77,38 @@ test('home in world mode boots the free-fly galaxy canvas', async ({ page }) => 
   await expect(page.locator('.hud-strip .status')).toContainText(/move/i, { timeout: 10_000 }); // WASM init can take a moment
 });
 
+test('narrow world HUD keeps telemetry clear of the centered compass', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+
+  for (const viewport of [{ width: 320, height: 480 }, { width: 375, height: 480 }]) {
+    await page.setViewportSize(viewport);
+    await page.goto('/?mode=world');
+    await expect(body(page)).toHaveAttribute('data-mode', 'world');
+    await expect(page.locator('.flight-speed')).toHaveText('0 u/s', { timeout: 10_000 });
+    await expect(page.locator('.flight-compass')).toBeVisible();
+    await expect(page.locator('.flight-telemetry')).toBeVisible();
+
+    const geometry = await page.evaluate(() => {
+      const read = (selector: string) => {
+        const rect = document.querySelector(selector)!.getBoundingClientRect();
+        return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, width: rect.width };
+      };
+      const compass = read('.flight-compass');
+      const telemetry = read('.flight-telemetry');
+      return {
+        viewportWidth: window.innerWidth,
+        compass,
+        telemetry,
+        intersects: compass.left < telemetry.right && compass.right > telemetry.left
+          && compass.top < telemetry.bottom && compass.bottom > telemetry.top,
+      };
+    });
+
+    expect(Math.abs((geometry.compass.left + geometry.compass.width / 2) - geometry.viewportWidth / 2)).toBeLessThanOrEqual(1);
+    expect(geometry.intersects).toBe(false);
+  }
+});
+
 test('a mission deep-link renders the list surface (portfolio intact)', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.goto('/missions/maker-bay'); // not the home route -> list
