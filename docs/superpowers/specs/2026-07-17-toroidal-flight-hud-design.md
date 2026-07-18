@@ -63,6 +63,9 @@ fixed substep it canonicalizes the ship position through the pure torus helper.
 It does not modify linear velocity or the control-facing state when a wrap
 occurs. Wrapping happens after `world.step()` and before the next fixed
 substep, so the old soft-boundary force cannot fight or undo the seam.
+Skipping that force in toroidal mode is an explicit cleanup/clarity decision,
+not a load-bearing behavior: the ±630 seam is reached before the legacy ±720
+force onset, so wrapping already makes the force unreachable in live flight.
 
 The pure core also exposes nearest-image deltas for minimap/proximity logic and
 future seam-aware physics. In this v1, that helper is not presented as Rapier
