@@ -10,7 +10,34 @@
   --accent: #e8743b;       /* orange — the joke, highlights */
   --accent-text: #a24116;  /* accessible orange/rust text alias */
   --ok: #5da583;
+  --panel-strip: rgba(255, 255, 255, 0.92);
+  --panel-card: rgba(255, 255, 255, 0.94);
+  --halo: #ffffff;
+  --readout: #38bdf8;
+  --readout-glow-soft: rgba(56, 189, 248, 0.55);
+  --readout-glow-tight: rgba(56, 189, 248, 0.9);
+  --speed: #4ab3d4;
   --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
   --font-script: Georgia, "Times New Roman", serif; /* temporary fallback until font matching */
+}
+
+/* Dark mode — HUD toggle, persisted (naa-theme). Dark gray + shades of orange;
+   the scene inverts density reading to denser = hotter (see src/core/theme.ts). */
+:root[data-theme='dark'] {
+  --bg: #1e2125;
+  --ink: #e6e1da;
+  --sky: #f09055;
+  --sky-text: #ffa64d;
+  --sky-line: #4a3b30;
+  --sky-faint: #2a2d31;
+  --accent: #ff8c4d;
+  --accent-text: #ffb27a;
+  --panel-strip: rgba(30, 33, 37, 0.92);
+  --panel-card: rgba(30, 33, 37, 0.94);
+  --halo: #1e2125;
+  --readout: #ffa64d;
+  --readout-glow-soft: rgba(255, 166, 77, 0.55);
+  --readout-glow-tight: rgba(255, 166, 77, 0.9);
+  --speed: #ffa64d;
 }

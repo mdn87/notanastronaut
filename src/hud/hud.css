@@ -5,7 +5,7 @@
   transform-origin: right center;
   font-family: var(--font-sans); font-weight: 800; font-size: 1.5rem;
   letter-spacing: -0.01em; color: var(--sky-text);
-  text-shadow: 0 0 6px #fff, 0 0 6px #fff, 0 1px 0 #fff;
+  text-shadow: 0 0 6px var(--halo), 0 0 6px var(--halo), 0 1px 0 var(--halo);
 }
 .hud-brand {
   position: absolute; top: 14px; left: 18px; pointer-events: auto;
@@ -21,7 +21,7 @@
 .hud-strip {
   position: absolute; left: 14px; right: 14px; bottom: 12px; pointer-events: auto;
   border: 1.5px solid var(--sky-line); border-radius: 8px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--panel-strip);
   padding: 8px 14px; font-size: 0.8rem; color: var(--ink);
   display: flex; justify-content: space-between; gap: 1rem;
 }
@@ -29,7 +29,7 @@
 .hud-panel {
   position: absolute; right: 18px; top: 64px; width: min(360px, 80vw);
   pointer-events: auto; border: 1.5px solid var(--sky-line); border-radius: 10px;
-  background: rgba(255, 255, 255, 0.94); padding: 14px 18px;
+  background: var(--panel-card); padding: 14px 18px;
   font-family: var(--font-sans);
 }
 .hud-panel h2 { color: var(--sky-text); margin: 0 0 0.25rem; font-size: 1.15rem; }
@@ -40,9 +40,9 @@
 .flight-readout {
   position: fixed; left: 0; top: 0; pointer-events: none;
   font: 600 13px/1 ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
-  letter-spacing: 0.12em; color: #38bdf8;
-  text-shadow: 0 0 6px rgba(56, 189, 248, 0.55), 0 0 1px rgba(56, 189, 248, 0.9);
+  letter-spacing: 0.12em; color: var(--readout);
+  text-shadow: 0 0 6px var(--readout-glow-soft), 0 0 1px var(--readout-glow-tight);
   opacity: 0; transition: opacity 120ms linear; white-space: nowrap;
   will-change: transform, opacity;
 }
-.hud-strip .flight-speed { font-family: ui-monospace, Menlo, Consolas, monospace; color: #4ab3d4; }
+.hud-strip .flight-speed { font-family: ui-monospace, Menlo, Consolas, monospace; color: var(--speed); }
