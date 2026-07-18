@@ -1,5 +1,6 @@
 // src/world/mount.ts
 import { WorldScene } from './scene';
+import { THEMES, getStoredTheme } from '../core/theme';
 
 export interface MountOpts { reducedMotion: boolean; }
 export type WorldCleanup = () => void;
@@ -14,7 +15,7 @@ export async function mountWorld(opts: MountOpts): Promise<WorldCleanup> {
   let onResize: (() => void) | null = null;
   let cleanupWire: WorldCleanup | null = null;
   try {
-    scene = new WorldScene(canvas, {});
+    scene = new WorldScene(canvas, { theme: THEMES[getStoredTheme()] });
     onResize = () => scene?.resize();
     document.body.prepend(canvas);
     addEventListener('resize', onResize);

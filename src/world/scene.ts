@@ -6,10 +6,11 @@ import type { ObstacleSpec } from '../core/field';
 import { makeSpiralGalaxy } from '../core/galaxy';
 import { makeGridLines } from '../core/grid';
 import { makeVolumeBodies } from '../core/parallax';
+import { THEMES, type Theme } from '../core/theme';
+import { applyTheme, type ThemeTargets, type AttrTarget } from './scene-theme';
 
 // galaxy-thruster.svg lives in public/ — reference it by URL, never `import` it.
 const THRUSTER_URL = '/artwork/galaxy/galaxy-thruster.svg';
-const BG = 0xffffff;
 const THRUSTER_ASPECT = 80 / 120;
 const ARROW_LEN = 3.6;
 // Chase cam: CAM_TURN is how fast the trail eases toward the facing (low = the
@@ -23,7 +24,7 @@ const GALAXY_RADIUS = 700;
 
 const v = (p: Vec3) => new THREE.Vector3(p.x, p.y, p.z);
 
-/** Custom point shader: per-vertex size + alpha, soft round mask, dark-on-white. */
+/** Custom point shader: per-vertex size + alpha, soft round mask, theme-painted. */
 function pointsMaterial(square: boolean): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
     transparent: true, depthWrite: false, blending: THREE.NormalBlending,
@@ -93,16 +94,23 @@ export class WorldScene {
   private readonly lookAt = new THREE.Vector3(0, 0, 0);
   private obstacles: THREE.Points | null = null;
   private obstaclePos: Float32Array | null = null;
+  private readonly bgColor = new THREE.Color(0xffffff);
+  private readonly bodyMat: THREE.MeshBasicMaterial;
+  private readonly finMat: THREE.MeshBasicMaterial;
+  private readonly galaxyMixes: Float32Array;
+  private obstacleSpecs: ObstacleSpec[] = [];
+  private currentTheme: Theme;
 
-  constructor(canvas: HTMLCanvasElement, opts: { seed?: number } = {}) {
+  constructor(canvas: HTMLCanvasElement, opts: { seed?: number; theme?: Theme } = {}) {
     const seed = opts.seed ?? 1981;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-    this.scene.background = new THREE.Color(BG);
+    this.scene.background = this.bgColor;
     this.camera = new THREE.PerspectiveCamera(60, 1, 0.3, 4000);
 
     // Galaxy (round points, no distance fade).
     const gf = makeSpiralGalaxy(seed, { radius: GALAXY_RADIUS, thickness: 30, count: 30000 });
+    this.galaxyMixes = gf.mixes;
     const gg = new THREE.BufferGeometry();
     setAttrs(gg, gf.positions, gf.sizes, gf.alphas, gf.colors);
     const galaxyMat = pointsMaterial(false);
@@ -138,10 +146,11 @@ export class WorldScene {
     const arrow = new THREE.Group();
     const bodyGeo = new THREE.ConeGeometry(0.7, ARROW_LEN, 6);
     bodyGeo.rotateX(Math.PI / 2); // apex now points +z (forward)
-    arrow.add(new THREE.Mesh(bodyGeo, new THREE.MeshBasicMaterial({ color: 0x2b7e9e })));
+    this.bodyMat = new THREE.MeshBasicMaterial({ color: 0x2b7e9e });
+    arrow.add(new THREE.Mesh(bodyGeo, this.bodyMat));
     const finGeo = new THREE.BoxGeometry(0.1, 1.7, 1.3);
-    const finMat = new THREE.MeshBasicMaterial({ color: 0x184f68 });
-    const finV = new THREE.Mesh(finGeo, finMat); finV.position.z = -ARROW_LEN * 0.32;
+    this.finMat = new THREE.MeshBasicMaterial({ color: 0x184f68 });
+    const finV = new THREE.Mesh(finGeo, this.finMat); finV.position.z = -ARROW_LEN * 0.32;
     const finH = finV.clone(); finH.rotation.z = Math.PI / 2;
     arrow.add(finV, finH);
     arrow.renderOrder = 10;
@@ -153,6 +162,8 @@ export class WorldScene {
     this.thruster.renderOrder = 9; this.thruster.visible = false;
     this.scene.add(this.thruster);
 
+    this.currentTheme = opts.theme ?? THEMES.light;
+    this.setTheme(this.currentTheme);
     this.resize();
   }
 
@@ -161,6 +172,7 @@ export class WorldScene {
   setObstacles(specs: ObstacleSpec[]): void {
     const n = specs.length;
     if (n === 0) return;
+    this.obstacleSpecs = specs;
     const pos = new Float32Array(n * 3), size = new Float32Array(n), alpha = new Float32Array(n), color = new Float32Array(n * 3);
     specs.forEach((s, i) => {
       pos[i * 3] = s.pos.x; pos[i * 3 + 1] = s.pos.y; pos[i * 3 + 2] = s.pos.z;
@@ -175,6 +187,26 @@ export class WorldScene {
     this.obstacles = new THREE.Points(geom, mat);
     this.scene.add(this.obstacles);
     this.obstaclePos = pos;
+    this.setTheme(this.currentTheme); // paint the new cloud from the CURRENT theme (specs carry light-baked colors)
+  }
+
+  /** Repaint every themed slot live — no scene rebuild, flight state untouched. */
+  setTheme(theme: Theme): void {
+    this.currentTheme = theme;
+    applyTheme(this.targets(), theme, { mixes: this.galaxyMixes, obstacles: this.obstacleSpecs });
+  }
+
+  private targets(): ThemeTargets {
+    const attr = (g: THREE.BufferGeometry) => g.getAttribute('aColor') as unknown as AttrTarget;
+    return {
+      background: this.bgColor,
+      gridColor: this.gridMat.uniforms.uColor!.value as THREE.Color,
+      avatarBody: this.bodyMat.color,
+      avatarFins: this.finMat.color,
+      galaxyColor: attr(this.galaxy.geometry),
+      squareColor: attr(this.squares.geometry),
+      obstacleColor: this.obstacles ? attr(this.obstacles.geometry) : null,
+    };
   }
 
   resize(): void {
