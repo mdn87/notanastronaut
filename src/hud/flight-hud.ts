@@ -71,9 +71,9 @@ export class FlightHud {
 
     this.speedEl.textContent = `${Math.round(speed)} u/s`;
     this.xyzEl.textContent = `X ${sign(position.x)}  Y ${sign(position.y)}  Z ${sign(position.z)}`;
-    this.markerEl.style.transform = `translate(${compact(mapX)}%, ${compact(mapY)}%)`;
-    this.markerEl.style.left = '0%';
-    this.markerEl.style.top = '0%';
+    this.markerEl.style.left = `${compact(mapX)}%`;
+    this.markerEl.style.top = `${compact(mapY)}%`;
+    this.markerEl.style.transform = 'translate(-50%, -50%)';
     this.vectorEl.style.transform = `rotate(${degrees(angle)}deg)`;
     this.vectorEl.style.left = `${compact(mapX)}%`;
     this.vectorEl.style.top = `${compact(mapY)}%`;
