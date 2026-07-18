@@ -85,6 +85,8 @@ test('narrow world HUD keeps telemetry clear of the centered compass', async ({ 
     { width: 375, height: 480 },
     { width: 521, height: 480 },
     { width: 768, height: 480 },
+    { width: 769, height: 480 },
+    { width: 800, height: 480 },
   ]) {
     await page.setViewportSize(viewport);
     await page.goto('/?mode=world');
