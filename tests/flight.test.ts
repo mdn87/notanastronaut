@@ -12,6 +12,17 @@ describe('FlightMachine (game controls)', () => {
     expect(m.state.heading.z).toBeCloseTo(1, 6);
   });
 
+  it('starts with no wrap event', () => {
+    expect(new FlightMachine().state.wrapped).toBe(false);
+  });
+
+  it('resets the wrap event at the start of each tick', () => {
+    const m = new FlightMachine();
+    m.state.wrapped = true;
+    m.tick(0.05, I());
+    expect(m.state.wrapped).toBe(false);
+  });
+
   it('W (forward) drives +z, S (back) drives -z', () => {
     const f = new FlightMachine(); run(f, I({ forward: 1 }), 20);
     expect(f.state.position.z).toBeGreaterThan(0);
