@@ -33,11 +33,12 @@ export class FlightMachine {
     this.state = {
       position: { x: 0, y: 0, z: 0 }, velocity: { x: 0, y: 0, z: 0 },
       heading: headingFrom(0, 0), yaw: 0, pitch: 0, bank: 0, throttle: 0, speed: 0,
-      surge: 0, strafe: 0,
+      surge: 0, strafe: 0, wrapped: false,
     };
   }
 
   tick(dt: number, input: FlightInput): void {
+    this.state.wrapped = false;
     if (!(dt > 0)) return;
     const o = this.o, s = this.state;
     const ease = (cur: number, tgt: number, rate: number) => cur + (tgt - cur) * Math.min(1, rate * dt);

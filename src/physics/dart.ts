@@ -10,9 +10,10 @@ import {
   type ControlOpts,
 } from '../core/control';
 import type { ObstacleSpec } from '../core/field';
+import { wrapPositionInto } from '../core/torus';
 import { Obstacles } from './obstacles';
 
-type Rapier = typeof import('@dimforge/rapier3d');
+type Rapier = typeof import('@dimforge/rapier3d/rapier.js');
 type World = InstanceType<Rapier['World']>;
 type RigidBody = ReturnType<World['createRigidBody']>;
 
@@ -22,6 +23,7 @@ const NO_OBSTACLES = new Float32Array(0);
 const ROLL_SPEED = 16;       // rad/s — ~0.4s per 360°; chaining keeps it spinning
 const SIDESTEP_IMPULSE = 12; // lateral dodge impulse per roll (mass 1; damped)
 const TWO_PI = Math.PI * 2;
+const ZERO = { x: 0, y: 0, z: 0 };
 
 /**
  * Rapier-owned dart. A single dynamic point mass (mass = 1, rotations locked):
@@ -31,7 +33,7 @@ const TWO_PI = Math.PI * 2;
  */
 export class DartPhysics {
   static async create(opts: Partial<ControlOpts> = {}, obstacleSpecs: ObstacleSpec[] = []): Promise<DartPhysics> {
-    const RAPIER = await import('@dimforge/rapier3d');
+    const RAPIER = await import('@dimforge/rapier3d/rapier.js');
     return new DartPhysics(RAPIER, { ...DEFAULT_CONTROL, ...opts }, obstacleSpecs);
   }
 
@@ -41,6 +43,9 @@ export class DartPhysics {
   private yaw = 0; private pitch = 0; private bank = 0; private throttle = 0;
   private surge = 0; private strafeIntent = 0; private acc = 0;
   private rollTarget = 0;
+  private wrapped = false;
+  private readonly force = { x: 0, y: 0, z: 0 };
+  private readonly wrappedPosition = { x: 0, y: 0, z: 0 };
 
   private constructor(RAPIER: Rapier, private readonly o: ControlOpts, obstacleSpecs: ObstacleSpec[]) {
     this.world = new RAPIER.World({ x: 0, y: 0, z: 0 }); // deep space: no gravity
@@ -63,6 +68,7 @@ export class DartPhysics {
   }
 
   step(dt: number, input: FlightInput): void {
+    this.wrapped = false;
     if (!(dt > 0)) return;
     const f = integrateFacing(this.yaw, this.pitch, input, this.o.pitchLimit);
     this.yaw = f.yaw; this.pitch = f.pitch;
@@ -86,15 +92,20 @@ export class DartPhysics {
     const thr = thrustForce(input, heading, right, this.o);
     this.acc += Math.min(dt, MAX_STEP);
     while (this.acc >= FIXED) {
-      const t = this.body.translation();
-      const bnd = boundaryForce(t, this.o.bound, this.o.boundPush);
+      const wrapEdge = this.o.wrapEdge;
+      const bnd = wrapEdge === undefined
+        ? boundaryForce(this.body.translation(), this.o.bound, this.o.boundPush)
+        : ZERO;
       this.body.resetForces(false);
-      this.body.addForce({
-        x: thr.x * this.throttle + bnd.x,
-        y: thr.y * this.throttle + bnd.y,
-        z: thr.z * this.throttle + bnd.z,
-      }, true);
+      this.force.x = thr.x * this.throttle + bnd.x;
+      this.force.y = thr.y * this.throttle + bnd.y;
+      this.force.z = thr.z * this.throttle + bnd.z;
+      this.body.addForce(this.force, true);
       this.world.step();
+      if (wrapEdge !== undefined && wrapPositionInto(this.body.translation(), wrapEdge, this.wrappedPosition)) {
+        this.body.setTranslation(this.wrappedPosition, true);
+        this.wrapped = true;
+      }
       const v = this.body.linvel();
       const sp = Math.hypot(v.x, v.y, v.z);
       if (sp > cap) { const k = cap / sp; this.body.setLinvel({ x: v.x * k, y: v.y * k, z: v.z * k }, true); }
@@ -110,7 +121,7 @@ export class DartPhysics {
       velocity: { x: v.x, y: v.y, z: v.z },
       heading: headingFrom(this.yaw, this.pitch),
       yaw: this.yaw, pitch: this.pitch, bank: this.bank, throttle: this.throttle,
-      speed: Math.hypot(v.x, v.y, v.z), surge: this.surge, strafe: this.strafeIntent,
+      speed: Math.hypot(v.x, v.y, v.z), surge: this.surge, strafe: this.strafeIntent, wrapped: this.wrapped,
     };
   }
 

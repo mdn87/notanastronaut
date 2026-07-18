@@ -6,6 +6,7 @@ export interface ControlOpts {
   maxSpeed: number; boostMaxSpeed: number;
   linearDamping: number; pitchLimit: number;
   bound: number; boundPush: number;
+  wrapEdge?: number;
 }
 
 /** Tunables seeded from the legacy FlightMachine feel, plus boost. */

@@ -20,6 +20,7 @@ export interface FlightState {
   position: Vec3; velocity: Vec3; heading: Vec3;
   yaw: number; pitch: number; bank: number; throttle: number; speed: number;
   surge: number; strafe: number; // last movement intents (-1..1), for thruster visuals
+  wrapped: boolean;
 }
 
 export interface FlightOpts {
