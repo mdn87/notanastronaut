@@ -4,9 +4,13 @@ import { makeSpiralGalaxy } from '../src/core/galaxy';
 import type { WorldScene } from '../src/world/scene';
 
 const hudMocks = vi.hoisted(() => {
-  const instances: Array<{ setSpeed: ReturnType<typeof vi.fn>; dispose: ReturnType<typeof vi.fn> }> = [];
-  const FlightHud = vi.fn(function (this: { setSpeed: ReturnType<typeof vi.fn>; setReadout: ReturnType<typeof vi.fn>; dispose: ReturnType<typeof vi.fn> }) {
-    this.setSpeed = vi.fn(); this.setReadout = vi.fn(); this.dispose = vi.fn(); instances.push(this);
+  const instances: Array<{ setSpeed: ReturnType<typeof vi.fn>; setTheme: ReturnType<typeof vi.fn>; dispose: ReturnType<typeof vi.fn> }> = [];
+  const FlightHud = vi.fn(function (
+    this: { setSpeed: ReturnType<typeof vi.fn>; setReadout: ReturnType<typeof vi.fn>; setTheme: ReturnType<typeof vi.fn>; dispose: ReturnType<typeof vi.fn> },
+    _root?: unknown,
+    _opts?: unknown,
+  ) {
+    this.setSpeed = vi.fn(); this.setReadout = vi.fn(); this.setTheme = vi.fn(); this.dispose = vi.fn(); instances.push(this);
   });
   return { FlightHud, instances };
 });
@@ -48,6 +52,7 @@ const dartMocks = vi.hoisted(() => {
 vi.mock('../src/physics/dart', () => ({ DartPhysics: dartMocks.DartPhysics }));
 
 import { wireWorld } from '../src/world/wire';
+import { THEMES } from '../src/core/theme';
 
 function makeEventTarget() {
   const listeners = new Map<string, Set<(e: Record<string, unknown>) => void>>();
@@ -70,6 +75,7 @@ function installFrame() {
 function makeScene(): WorldScene {
   return { frame: vi.fn(), resize: vi.fn(), dispose: vi.fn(),
     galaxyField: makeSpiralGalaxy(1981, { count: 100 }),
+    setTheme: vi.fn(),
     readout: vi.fn(() => ({ x: 0, y: 0, pos: { x: 0, y: 0, z: 0 }, visible: false })),
     renderer: { domElement: { clientWidth: 800, clientHeight: 600 } } } as unknown as WorldScene;
 }
@@ -132,5 +138,33 @@ describe('wireWorld (free-fly)', () => {
     expect(win.count()).toBe(0);
     expect(hudMocks.instances[0]!.dispose).toHaveBeenCalledTimes(1);
     expect(dartMocks.instances[0]!.dispose).toHaveBeenCalledTimes(1);
+  });
+
+  it('theme toggle rethemes scene + DOM + storage, and back', async () => {
+    installFrame();
+    const store = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => void store.set(k, v),
+    });
+    const documentElement = { dataset: {} as Record<string, string> };
+    vi.stubGlobal('document', { getElementById: () => ({}), documentElement });
+    const scene = makeScene();
+    const cleanup = await wireWorld(scene, { reducedMotion: false });
+
+    const opts = hudMocks.FlightHud.mock.calls[0]![1] as { theme: string; onThemeToggle: () => void };
+    expect(opts.theme).toBe('light');
+
+    opts.onThemeToggle();
+    expect(documentElement.dataset.theme).toBe('dark');
+    expect(store.get('naa-theme')).toBe('dark');
+    expect(scene.setTheme).toHaveBeenCalledWith(THEMES.dark);
+    expect(hudMocks.instances[0]!.setTheme).toHaveBeenCalledWith('dark');
+
+    opts.onThemeToggle();
+    expect(documentElement.dataset.theme).toBeUndefined();
+    expect(store.get('naa-theme')).toBe('light');
+    expect(scene.setTheme).toHaveBeenLastCalledWith(THEMES.light);
+    cleanup();
   });
 });

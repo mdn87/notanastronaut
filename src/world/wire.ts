@@ -3,13 +3,26 @@ import { DartPhysics } from '../physics/dart';
 import { aimDelta, DEFAULT_STEER } from '../core/control';
 import type { FlightInput } from '../core/flight-types';
 import { FlightHud } from '../hud/flight-hud';
+import { THEMES, getStoredTheme, storeTheme, type ThemeName } from '../core/theme';
 import type { WorldScene } from './scene';
 
 const MAX_DT = 0.05;
 
 export async function wireWorld(scene: WorldScene, _opts: { reducedMotion: boolean }): Promise<() => void> {
   const dart = await DartPhysics.create({ bound: 720, boundPush: 220 }, scene.galaxyField);
-  const hud = new FlightHud(document.getElementById('hud-root')!);
+  let themeName: ThemeName = getStoredTheme();
+  const applyThemeName = (name: ThemeName) => {
+    themeName = name;
+    if (name === 'dark') document.documentElement.dataset.theme = 'dark';
+    else delete document.documentElement.dataset.theme;
+    storeTheme(name);
+    scene.setTheme(THEMES[name]);
+    hud.setTheme(name);
+  };
+  const hud = new FlightHud(document.getElementById('hud-root')!, {
+    theme: themeName,
+    onThemeToggle: () => applyThemeName(themeName === 'light' ? 'dark' : 'light'),
+  });
 
   // Drag-to-fly: while the left button is held, the cursor's offset from where it
   // was pressed steers like a flight stick — drag left -> nose left, drag up -> up.
