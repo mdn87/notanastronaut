@@ -173,6 +173,83 @@ test('barrel-roll dodge: a single D press side-steps the dart laterally', async 
   expect(Math.abs(x)).toBeGreaterThan(2); // dodged sideways from the lateral impulse
 });
 
+test('dark mode: toggle rethemes the galaxy and persists across reload', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/?mode=world');
+  await expect(page.locator('canvas#scene')).toBeVisible();
+  await expect(page.locator('.hud-strip .status')).toContainText(/move/i, { timeout: 10_000 });
+  await expect(page.locator('html')).not.toHaveAttribute('data-theme', 'dark');
+
+  await page.locator('.theme-toggle').click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+
+  // The WebGL scene actually rethemes: dark-gray background dominates, warm (orange-family) pixels appear.
+  const { darkBg, warm } = await page.evaluate(async () => {
+    const c = document.getElementById('scene') as HTMLCanvasElement;
+    const gl = (c.getContext('webgl2') || c.getContext('webgl')) as WebGLRenderingContext;
+    const W = c.width, H = c.height;
+    const px = new Uint8Array(W * H * 4);
+    let darkBg = 0, warm = 0;
+    for (let i = 0; i < 20; i++) {
+      await new Promise((r) => requestAnimationFrame(() => r(null)));
+      gl.readPixels(0, 0, W, H, gl.RGBA, gl.UNSIGNED_BYTE, px);
+      let d = 0, w = 0;
+      for (let p = 0; p < px.length; p += 4) {
+        const r = px[p]!, g = px[p + 1]!, b = px[p + 2]!;
+        // Dark theme's clear color (0x1e2125) reads back at ~rgb(30,33,37). The
+        // threshold stays a generous 150 — far above any dark-gray reading and far
+        // below the light theme's pure-white (255,255,255) corner — so it cleanly
+        // discriminates the two themes without being sensitive to encoding details.
+        if (r < 150 && g < 150 && b < 150) d++;
+        if (r > 120 && r > b + 30) w++;
+      }
+      darkBg = Math.max(darkBg, d); warm = Math.max(warm, w);
+    }
+    return { darkBg, warm };
+  });
+  expect(darkBg).toBeGreaterThan(10_000);
+  expect(warm).toBeGreaterThan(200);
+
+  await page.reload(); // stored theme + pre-paint bootstrap + late obstacles under dark
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await expect(page.locator('canvas#scene')).toBeVisible();
+});
+
+test('nose-pointing: a coasting dart curves toward where you point', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto('/?mode=world');
+  const readout = page.locator('.flight-readout');
+  await page.locator('canvas#scene').click();
+  await expect(readout).toHaveText(/X/, { timeout: 8000 });
+
+  // This line has no obstacle field, but the dart spawns at the galaxy's origin
+  // (0,0,0) -- inside the dense core/arm-root region of a 30000-star field -- so a
+  // thrust hold can end in a real star collision (restitution 0.7), which stomps
+  // speed/heading independently of alignVelocity. 800ms (the v1 hold) kept working
+  // here too: short enough that the dart is usually still just inside the low-
+  // density core skirt when thrust releases, not deep in the packed arms.
+  await page.keyboard.down('w');
+  await page.waitForTimeout(800);
+  await page.keyboard.up('w'); // coast from whatever speed survived any star hit
+
+  const size = page.viewportSize()!;
+  const cx = size.width / 2, cy = size.height / 2;
+  await page.mouse.move(cx, cy);
+  await page.mouse.down();
+  await page.mouse.move(cx + 320, cy, { steps: 8 }); // drag right: yaw the nose ~90°
+  await page.waitForTimeout(400);
+
+  // Sampling window (400ms / 1100ms post-drag) matches v1: with linearDamping 0.8,
+  // coast speed decays fast (time constant ~1.25s), so sampling while the dart still
+  // carries real speed is what makes the momentum-curving-onto-new-heading visible.
+  const xAt = async () => parseInt((await readout.textContent())?.match(/X\s*([+-]\d+)/)?.[1] ?? '0', 10);
+  const x1 = await xAt();
+  await page.waitForTimeout(700); // still coasting, no thrust keys
+  const x2 = await xAt();
+  await page.mouse.up();
+  expect(Math.abs(x2 - x1)).toBeGreaterThan(4); // momentum curved onto the new heading without thrust
+});
+
 test.describe('mobile / coarse pointer', () => {
   const { defaultBrowserType: _unused, ...iphone13 } = devices['iPhone 13'];
   test.use(iphone13);
