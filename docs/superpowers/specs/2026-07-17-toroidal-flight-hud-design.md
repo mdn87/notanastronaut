@@ -13,11 +13,19 @@ open outside the exact HUD regions.
 ## Product decisions
 
 - The world is a torus over the marked grid volume.
-- The default seam is the visible outer grid face, derived from the grid's
-  spacing and extent rather than a second magic number.
-- Wrapping applies to the ship and active gameplay objects in the live flight
-  surface. The removed/stale galaxy backdrop is not part of this feature and
-  must not be restored or used as a dependency.
+- The default seam is the visible outer line-grid face: `spacing: 90`,
+  `extent: 700`, `n = floor(extent / spacing) = 7`, and therefore
+  `edge = n * spacing = 630` on every axis. The dot lattice's separate
+  `spacing: 26`, `extent: 260` values are not the seam.
+- Toroidal mode replaces the live flight soft-boundary force. The old
+  `boundaryForce` helper and `bound`/`boundPush` options may remain for legacy
+  callers/tests, but the active toroidal adapter does not apply them.
+- In v1 the ship is the only object that can cross the seam in live gameplay.
+  The seeded obstacle field currently lives inside a smaller ±300 volume and
+  does not reach the ±630 planes. Object-wrapping helpers stay pure and
+  forward-compatible, but no new dynamic-object lifecycle is added here.
+- The removed/stale galaxy backdrop is not part of this feature and must not be
+  restored or used as a dependency.
 - A wrap preserves velocity, heading, yaw, pitch, roll, and overshoot.
 - The HUD uses the selected side-instrument-strip composition.
 - The compass is centered along the bottom edge, not at the top.
@@ -33,7 +41,8 @@ open outside the exact HUD regions.
 
 Extend the grid/core layer with pure helpers for:
 
-- deriving the effective grid edge from `{ spacing, extent }`;
+- deriving the effective line-grid edge from `{ spacing, extent }` as
+  `floor(extent / spacing) * spacing`;
 - wrapping a scalar into `[-edge, edge]` while preserving overshoot;
 - wrapping all three coordinates independently;
 - finding the nearest-image delta between two positions on the torus.
@@ -42,17 +51,26 @@ The scalar operation uses the grid period (`2 * edge`) and is deterministic for
 positive and negative inputs. Exact seam values have one defined canonical
 representation so minimap and physics state cannot disagree.
 
+The line-grid spacing, requested extent, and quantized edge are one shared
+source of truth used by grid construction, scene rendering, minimap scaling,
+and flight physics. With the current values these are `90`, `700`, and `630`;
+the old `720` soft-bound value is not reused or left as a competing live limit.
+
 ### Physics integration
 
 The physics adapter remains responsible for Rapier integration. After each
-fixed substep it canonicalizes the ship and active gameplay-object positions
-through the pure torus helper. It does not modify linear velocity or the
-control-facing state when a wrap occurs.
+fixed substep it canonicalizes the ship position through the pure torus helper.
+It does not modify linear velocity or the control-facing state when a wrap
+occurs. Wrapping happens after `world.step()` and before the next fixed
+substep, so the old soft-boundary force cannot fight or undo the seam.
 
-Collision checks near a seam use the nearest-image delta. An object just beyond
-the positive X/Z/Y face is treated as adjacent to the corresponding object just
-inside the negative face. This keeps collisions continuous without requiring a
-second gameplay coordinate system or a backdrop-specific renderer.
+The pure core also exposes nearest-image deltas for minimap/proximity logic and
+future seam-aware physics. In this v1, that helper is not presented as Rapier
+collision response: Rapier still resolves contacts in ordinary canonical
+world-space. Because the current seeded obstacles are bounded to ±300, no live
+obstacle is near the ±630 seam. Adding ghost/image colliders or a custom
+narrowphase for dynamic objects is explicitly deferred until the gameplay field
+can reach the seam.
 
 The renderer receives canonical positions. The grid remains fixed in the same
 coordinate volume and therefore acts as the visual reference for the seam.
@@ -71,11 +89,16 @@ coordinate volume and therefore acts as the visual reference for the seam.
 
 The flight loop passes navigation state into the HUD once per frame. The HUD
 does not read Three.js objects directly. Its update method accepts plain
-numbers/vectors so it remains unit-testable without WebGL.
+numbers/vectors so it remains unit-testable without WebGL. The fixed telemetry
+panel replaces the flight HUD's existing floating `.flight-readout`; there is
+one authoritative XYZ readout, not two competing presentations.
 
 The new regions use opaque `var(--bg)`/white backgrounds, solid borders, and
 simple CSS geometry. Existing pointer interaction remains limited to the
-controls that already need it; HUD decoration stays pointer-transparent.
+controls that already need it; HUD decoration stays pointer-transparent. White
+panels are intentional: the live surface is a sparse line/grid field, so opaque
+white instrument blocks provide the strongest contrast without tinting the rest
+of the viewport.
 
 Responsive behavior keeps the center flight view clear: the minimap and
 telemetry shrink into compact corner blocks and the compass remains centered at
@@ -83,10 +106,11 @@ the bottom with a bounded width. No full-screen HUD layer is introduced.
 
 ## Module boundaries
 
-- `src/core/grid.ts` or a focused torus helper: pure edge, wrap, and
+- `src/core/grid.ts` or a focused torus helper: pure line-grid edge, wrap, and
   nearest-image math.
-- `src/physics/dart.ts` and any active-object physics adapter: apply canonical
-  wrapping after fixed substeps and preserve velocity/facing.
+- `src/physics/dart.ts`: apply canonical ship wrapping after fixed substeps,
+  skip the live soft-boundary force in toroidal mode, and preserve
+  velocity/facing.
 - `src/world/scene.ts`: continue to render the existing live surface and fixed
   grid; consume canonical positions only. Do not add galaxy/backdrop rendering.
 - `src/world/wire.ts`: pass navigation state and wrap events to the HUD.
@@ -110,8 +134,9 @@ input
 
 `wrapped` is a frame-level event or counter used only for feedback. It must not
 change the continuous movement state. The minimap uses canonical position
-normalized against the effective edge; the compass uses yaw/pitch and the
-heading vector; telemetry uses the same canonical position shown to physics.
+normalized against the line-grid edge (`±630` with the current constants); the
+compass uses yaw/pitch and the heading vector; telemetry uses the same
+canonical position shown to physics.
 
 ## Testing
 
@@ -128,13 +153,15 @@ heading vector; telemetry uses the same canonical position shown to physics.
 
 - A ship crossing each face reappears on the opposite face.
 - Linear velocity and heading are unchanged by wrapping.
-- A gameplay object crossing a face is canonicalized too.
-- Objects on opposite faces still collide when their nearest-image distance is
-  within the collision radius.
+- The pure object helper canonicalizes a position crossing a face, even though
+  no current v1 obstacle reaches the seam.
+- Objects on opposite faces report the short nearest-image distance; v1 does
+  not claim Rapier resolves cross-seam collision response.
 
 ### HUD tests
 
-- The HUD markup contains minimap, compass, and telemetry regions.
+- The HUD markup contains minimap, compass, and telemetry regions, with the
+  telemetry panel replacing the floating flight XYZ readout.
 - Compass output responds to yaw/pitch without accessing WebGL.
 - Minimap output places the marker from canonical X/Z coordinates and rotates
   the heading vector.
@@ -167,8 +194,10 @@ heading vector; telemetry uses the same canonical position shown to physics.
 
 - Crossing a marked grid edge teleports the ship to the opposite side while
   preserving its direction and motion state.
-- The grid, ship, and active gameplay objects share toroidal coordinates.
-- Cross-seam nearest-image collision behavior is covered by tests.
+- The grid and ship share the same quantized toroidal coordinate volume; the
+  pure helpers are ready for future moving-object wrapping.
+- Cross-seam nearest-image proximity math is covered by tests, without claiming
+  unsupported Rapier collision response.
 - The HUD visibly includes a gimbal compass at middle-bottom, a rudimentary
   minimap, and right-side telemetry.
 - HUD panels are flat, opaque, limited to their added geometric regions, and
