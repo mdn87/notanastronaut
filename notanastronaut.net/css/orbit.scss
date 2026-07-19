@@ -1,0 +1,110 @@
+#orbWrapper {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+}
+#orbDiv {
+
+}
+#orbCanvas { 
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+#planetWrapper {
+  height: 140px;
+  width: 75px;
+  top: 148px;
+  right: 179px;
+  position: absolute;
+  z-index: 2;
+  overflow: hidden;
+}
+#planetRight {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  height: 215px;
+  width: 215px;
+  background-color: white;
+  border: 6px solid rgba(0,174,239,1);
+  border-radius: 550px;
+}
+#orbitBall {
+  background-color: white;
+  height: 45px;
+  width: 45px;
+  border: 6px solid rgba(0,174,239,1);
+  border-radius: 50px;
+}
+#planet1 {
+  right: 110px;
+  top: 130px;
+  z-index: -1 !important;
+}
+
+@for $i from 1 to 7 {
+  @property --q#{$i}x {
+    syntax: '<number>';
+    inherits: false;
+    initial-value: 0;
+  }
+  @property --q#{$i}y {
+    syntax: '<number>';
+    inherits: false;
+    initial-value: 0;
+  }
+}
+#orbDiv{
+  --p0x: 393;
+  --p0y: 164;
+  --p1x: 62;
+  --p1y: 221;
+  --p2x: 902;
+  --p2y: 461;
+  --p3x: 552;
+  --p3y: 213;
+}
+#orb {
+  position: absolute;
+  user-select: none;
+  pointer-events: none;
+  top: calc(-16px + 1px * var(--q6y));
+  left: calc(-16px + 1px * var(--q6x));
+  font-size: 24px;
+  animation-name: q1, q2, q3, q4, q5, q6, progress;
+  animation-duration: 23s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: reverse;
+}
+  
+  @keyframes q1 {
+    from { --q1x: var(--p0x); --q1y: var(--p0y); }
+    to { --q1x: var(--p1x); --q1y: var(--p1y); }
+  }
+  @keyframes q2 {
+    from { --q2x: var(--p1x); --q2y: var(--p1y); }
+    to { --q2x: var(--p2x); --q2y: var(--p2y); }
+  }
+  @keyframes q3 {
+    from { --q3x: var(--p2x); --q3y: var(--p2y); }
+    to { --q3x: var(--p3x); --q3y: var(--p3y); }
+  }
+  @keyframes q4 {
+    from { --q4x: var(--q1x); --q4y: var(--q1y); }
+    to { --q4x: var(--q2x); --q4y: var(--q2y); }
+  }
+  @keyframes q5 {
+    from { --q5x: var(--q2x); --q5y: var(--q2y); }
+    to { --q5x: var(--q3x); --q5y: var(--q3y); }
+  }
+  @keyframes q6 {
+    from { --q6x: var(--q4x); --q6y: var(--q4y); }
+    to { --q6x: var(--q5x); --q6y: var(--q5y); }
+  }
+  @keyframes progress {
+    from { z-index: 0; }
+    to { z-index: 1000; }
+  }

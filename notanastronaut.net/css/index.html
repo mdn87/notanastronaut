@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link href="css/index.css" type="text/css" rel="stylesheet">
+  <link href="css/orbit.css" rel="stylesheet">
+  <meta name="viewport" content="width=device-width" charset="UTF-8">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Crete+Round&display=swap" rel="stylesheet">
+
+  <link rel="icon" href="img/favicon.ico">
+  <title>Matt's UX Portfolio</title>
+</head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-MS2VLZ42WJ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-MS2VLZ42WJ');
+</script>
+<body>
+  <nav id="navBar">  
+    <div id="navigation" class="nav-links">
+      <div id="home" class="nav navBorder active highlight"><img src="img/logo.png"></div>
+      <div id="proj1" class="nav"><img src="img/proj1.png"></div>
+      <div id="proj2" class="nav"><img src="img/proj2.png"></div>
+      <div id="proj3" class="nav"><img src="img/proj3.png"></div>
+      <div id="motion" class="nav"><img src="img/motion.png"></div>
+    </div>
+  
+    <div class="icons">
+      <a href="matthew-newman-2025.pdf"><div class="nav"><img src="img/resume.png"></div></a>
+      <a href="https://www.linkedin.com/in/matthew-newman-92011415/"><div class="nav"><img src="img/linkedin.png"></div></a>
+      <a href="https://github.com/mdn87"><div class="nav"><img src="img/github.png"></div></a>
+    </div>
+  </nav>
+  
+  
+  
+  <!--Start Home Page Content-->
+  <section id="p0Content" class="">
+    <div id="heroSection" class="textStyles">
+      <img id="cloud1" class="anim" src="img/cloud-200x85.png">
+      <img id="cloud2" class="anim" src="img/cloud-200x85.png">
+      <img id="heroImg" src="img/heroImg-blank.png">
+
+      <img id="star2" class="anim" src="img/star2-25x25.png">
+      <img id="planet2" class="anim" src="img/planet2-200x175.png">
+      <img id="planet1" class="anim" src="img/planet1-375x250-alt.png">
+      <div id="planetWrapper" class="desk">
+        <div id="planetRight" class="desk"></div>
+      </div>
+      <div id="orbWrapper" class="desk">
+        <div id="orbDiv" class="desk">
+          <canvas id="orbCanvas" class="desk" height="600" width="1200"></canvas>
+          <input type="checkbox" id="show-construction" class="hide" unchecked/>
+          <label for="show-construction"></label>
+          <div id="orb"><div id="orbitBall" class="cart"></div></div>
+        </div>
+      </div>
+
+      <!--
+      <img id="star1" class="anim" src="img/star-75x75.png">
+      <img id="rocket" class="anim" src="img/rocket-two-tones.png">  
+      -->
+    </div>
+    
+    <div id="aboutMe" class="textStyles">
+      <h2>About Me</h2>
+      <h3>I might not actually be an astronaut...</h3>
+      
+      
+    <div id="aboutMeMore" class="aboutMeGrid">
+      <div class="aboutText">
+        <p>...but I am a digital designer with a diverse skill set ranging from motion graphics to front-end web development.</p>
+        <p>I'm a strong believer that if something's worth doing, it's worth doing right. At heart, I'm a maker — I love building from the ground up, whether it's a woodcut or a brand identity.</p>
+        <p>My work has consistently orbited around one central force: brand development, with operational excellence acting as the stabilizing system that keeps everything mission-ready. From motion graphics and automotive campaigns to print and digital platforms, I've helped shape brands across media — creating visuals that are both stunning and out of this world.</p>
+        <p>As print shop manager, I handled everything from business cards and brochures to wide-format signage, event collateral, and logo design — balancing speed, quality, and client expectations in a high-volume environment. That experience gave me a sharp eye for consistency and a deep understanding of how design translates into real-world brand perception.</p>
+        <p>More recently, at an engineering firm, I developed automated systems to streamline archiving and improve workflow efficiency — helping keep the ship running smoothly behind the scenes. Whether I'm designing launch-worthy visuals or keeping the systems running in the background, my goal is always the same: help the mission succeed — beautifully and efficiently.</p>
+      </div>
+
+      <div class="aboutSidebar">
+        <h2>Experience</h2>
+        <ul>
+          <li><strong>Engineering Ops</strong> — 2 yrs<br><span>Workflow automation &amp; archiving</span></li>
+          <li><strong>UI/UX Design</strong> — 2 yrs<br><span>Prototypes &amp; style guides</span></li>
+          <li><strong>Print Manager</strong> — 8 yrs<br><span>Retail &amp; large-format design</span></li>
+          <li><strong>Digital Media</strong> — 3 yrs<br><span>Ad production &amp; graphics QA</span></li>
+          <li><strong>Motion Design</strong> — 2 yrs<br><span>Video graphics &amp; animation</span></li>
+        </ul>
+      </div>
+    </div>
+
+      <button id="aboutMeToggle" class="readMoreBtn">Read More</button>
+    </div>
+
+    <div class="skills-work-container">
+      <div id="skills" class="textStyles">
+        <h1>UX Skills</h1>
+        <div class="line"></div>
+        <h2>Tools</h2>
+        <p>Figma, Adobe XD, Photoshop, Illustrator, InDesign, AfterEffects, Premiere, ProTools, Fiery Impose, HTML/CSS, JavaScript, WordPress</p>
+        <h2>Soft Skills</h2>
+        <p>Workflow optimization, customer service, logistics, communication, management, computer networking, digital archiving best practices</p>
+        <h2>Design Skills</h2>
+        <p>Visual design, product development, user experience, wireframing, rapid prototyping, storyboarding, user research, interviewing, responsive web, interaction design, motion graphics, sound design</p>
+        <h2>UI/UX Certification • 2022</h2>
+        <div class="line"></div>
+        <h3>Georgia Institute of Technology</h3>
+        <p>Six-month training certificate in an online classroom setting.</p>
+        <h2>BFA • Motion Graphics • 2008</h2>
+        <div class="line"></div>
+        <h3>Savannah College of Art and Design</h3>
+        <p>Developed branding solutions and production artwork for broadcast networks. Utilized Adobe Creative Suite, including Adobe After Effects and 3D Software. Gained experience with sound design and web development.</p>
+      </div>
+  
+      <div id="work" class="textStyles">
+        <h1>UX Work</h1>
+        <div class="line"></div>
+        <div class="project">
+          <div class="projTitle">
+            <h2>Travel App</h2>
+            <h3>Individual Project</h3>
+          </div>
+          <div class="projDesc">
+            <p>In this student project, I went through the process of identifying a user need through to a high-resolution prototype, while incorporating user feedback throughout the process.</p>
+          </div>
+          <div class="projImg">
+            <img id="proj1_link" src="img/proj1.png" class="nav">
+          </div>
+        </div>
+        <div class="project">
+          <div class="projTitle">
+            <h2>Government Agency Redesign</h2>
+            <h3>Individual Project</h3>
+          </div>
+          <div class="projDesc">
+            <p>In this student project, I analyzed the data structure of the Homeland Security website and integrated user feedback into its redesign. A new brand style guide was created and web and mobile prototypes created with responsive web design in mind.</p>
+          </div>
+          <div class="projImg">
+            <img id="proj2_link" src="img/proj2.png" class="nav">
+          </div>
+        </div>
+        <div class="project">
+          <div class="projTitle">
+            <h2>Non-Profit Website Redesign</h2>
+            <h3>Group Project</h3>
+          </div>
+          <div class="projDesc">
+            <p>In this student project, I went through the process of identifying a user need through to a high-resolution prototype, while incorporating user feedback throughout the process.</p>
+          </div>
+          <div class="projImg">
+            <img id="proj3_link" src="img/proj3.png" class="nav">
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    
+    <!-- Resume Experience
+    <div id="exp" class="textStyles">
+      <h1>Experience</h1>
+      <div class="line"></div>
+      <h2>Manager - Certified Operator</h2>
+      <h3>The UPS Store #3737 — Atlanta, GA</h3>
+      <p>
+      • Managed team of 5 -10 in retail and print operations.
+      • Increased print revenue to top 10% in area.
+      • Realized 10% average revenue growth yearly 
+      • Earned 7 STR Excellence awards (annual revenue)
+      • Received “Something Extra” award, a network-wide recognition award for customer service.
+      </p>
+      <h2>Layout Designer</h2>
+      <h3>SouthComm Publishing — Atlanta, GA</h3>
+      <p>
+      • Worked with small team to produce annual publications for towns and cities in the southeast. 
+      • Coordinated with art director, photographers and writers to maintain brand identity focusing on page composition and visual design. 
+      </p>
+      <h2>DIGITAL MEDIA DESIGNER</h2>
+      <h3>AutoTrader.com — Atlanta, GA</h3>
+      <p>
+      • Worked with account consultants to fulfill automotive dealership online advertising requests. • Managed graphics standards for large groups of dealerships on 4-person Major Accounts team. 
+      • Won “Johnny the Bagger” award for initiative with time-saving tool for department.
+      </p>
+      <h2>Motion Graphics Designer</h2>
+      <h3>Point. Click. Shoot. — Atlanta, GA</h3>
+      <p>
+      • Worked with small team to complete motion graphics for use in video productions.
+      • Helped gain stakeholder buy-in using storyboards, mockups and client feedback. 
+      </p>
+    </div>
+    -->
+  </section><!-- End Home Page Content -->
+
+  <!-- Start Project 1 Page Content -->
+  <section id="p1Content" class="pContent hide">
+    
+    <div class="sidebar hide">
+      <div class="scrollBar">
+        <div class="scrollArrowUp"><img src="img/arrow-up.png"></div>
+        <div class="scrollArrowDown"><img src="img/arrow-down.png"></div>
+      </div>
+      <div id="dotContain1" class="dotContain">
+        <div id="mainDot1" class="ui-widget-content"><span class="dotScroll"></div>
+      </div>
+
+      <style>
+        #draggable { width: 150px; height: 150px; padding: 0.5em; }
+        </style>
+      <div class="scrollLine"></div>
+      
+      <div class="leftNav">
+        <div class="btn0 navFocus">Overview</div>
+        <div class="dots1 dots">
+          <span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="btn1">Research</div>
+        <div class="dots2 dots">
+          <span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="btn2">Definition</div>
+        <div class="dots3 dots">
+          <span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="btn3">Ideation</div>
+        <div class="dots4 dots">
+          <span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="btn4">Prototyping</div>
+        <div class="dots5 dots">
+          <span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="btn5">Testing</div>
+        <div class="dots6 dots">
+          <span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="btn6">Conclusion</div>
+      </div>
+    </div> 
+    <div id="p1s0" class="pSection0 pOverview section pCenter textStyles">
+      <div class="pSection0 pTitle">
+        <h4> </h4>
+        <img src="img/p1-over.png" class="pTitleImg staticImg">
+      </div>
+      <div class="pSection">
+        <div class="pHalf">
+          <h2>Travel App</h2>
+          <p>Objective: Create an app to solve a problem a user might encounter when traveling with a group of people.</p>
+        </div>
+        <div class="pImg">
+          <p><img src="img/p1-over2.png" class="pTitleImg2"></p>
+        </div>
+      </div>
+        <p></p><p></p>
+        <p></p><p></p>
+      <a href="https://www.figma.com/proto/9Z1621jQpp7l1y6yebdXwF/Clickable-Wireframe-04.2-3---IPHONE?node-id=103-1134&p=f&t=jHosmnJLteak0i0g-1&scaling=scale-down&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=103%3A1134">Figma Mobile Prototype</a>
+        <p></p><p></p>
+    </div>
+    <div id="p1s1" class="pSection1 section pLeft textStyles">
+      <div class="pTitle">
+        <h4>Research</h4>
+       
+      </div>
+      <div class="pSection pCenter">
+        <div class="">
+          <h2>Summary</h2>
+          <p>As a group of 5, we recorded interviews with general questions about traveling in a group.</p>
+          <p>One key takeaway came in the form of a direct quote from one of my interviews.</p>
+          <blockquote>“It's just hard to boil something down like this that's probably going to be solved by people having conversations into an app, and ultimately it's like how much time is that going to save you?”</blockquote>
+          <p>Research methods and exploration of concepts:</p>
+        </div>
+        <div class="pThumbRow">
+          <ul class="pThumbList">
+            <li>
+              <a href="#img1"><img src="img/ResearchSlides__Page_1.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="img1"><span style="background-image: url('img/ResearchSlides__Page_1.png')"></span></a>
+            </li>
+            <li>
+              <a href="#img2"><img src="img/ResearchSlides__Page_2.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="img2"><span style="background-image: url('img/ResearchSlides__Page_2.png')"></span></a>
+            </li>
+            <li>
+              <a href="#img3"><img src="img/ResearchSlides__Page_3.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="img3"><span style="background-image: url('img/ResearchSlides__Page_3.png')"></span></a>
+            </li>
+            <li>
+              <a href="#img4"><img src="img/ResearchSlides__Page_4.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="img4"><span style="background-image: url('img/ResearchSlides__Page_4.png')"></span></a>
+            </li>
+            <li>
+              <a href="#img5"><img src="img/ResearchSlides__Page_5.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="img5"><span style="background-image: url('img/ResearchSlides__Page_5.png')"></span></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div id="p1s2" class="pSection2 section pRight textStyles">
+      <div class="pTitle">
+        <h4>Definition</h4>
+      </div>
+      <div class="pSection">
+        <div class="pImg">
+          <p><img src="img/map-with-you-are-here-vector-icons.jpg" class="staticImg imgLeft"></p>
+        </div>
+        <div class="pHalf">
+          <h2>A change of direction...</h2>
+          <p>Moving into the rest of the process I broke off from my group with my own direction based on user feedback.</p>
+          <p>Much of the process for planning group travel is easily done through traditional communication. Finding a specific part of the process that we can provide value for the user is our goal.</p>
+          <h2>New problem statement:</h2>
+          <p>Travelers planning activities for groups need a better way to coordinate with participants because traditional methods are too time-consuming.</p>
+        </div>
+      </div>
+    </div>
+    <div id="p1s3" class="pSection3 section pLeft textStyles">
+      <div class="pTitle">
+        <h4>Ideation</h4>
+      </div>
+      <div class="pSection">
+        <div class="pHalf">
+          <h2>Here we explore the user's journey</h2>
+          <p>Our user, Vanessa is traveling to New York City from Los Angeles with some of her yoga students. She invites her students to join her trip planning collaboration on GroupUp. 
+            Instead of communicating with multiple individuals, researching activities, and manually scheduling, she is able to save 
+            time and stress by using our app.</p>
+        </div>
+        <div class="pThumbRow">
+          <ul class="pThumbList">
+            <li>
+              <a href="#p1i1"><img src="img/IdeationSlides__Page_1.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p1i1"><span style="background-image: url('img/IdeationSlides__Page_1.png')"></span></a>
+            </li>
+            <li>
+              <a href="#p1i2"><img src="img/IdeationSlides__Page_2.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p1i2"><span style="background-image: url('img/IdeationSlides__Page_2.png')"></span></a>
+            </li>
+            <li>
+              <a href="#p1i3"><img src="img/IdeationSlides__Page_3.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p1i3"><span style="background-image: url('img/IdeationSlides__Page_3.png')"></span></a>
+            </li>
+            <li>
+              <a href="#p1i4"><img src="img/IdeationSlides__Page_4.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p1i4"><span style="background-image: url('img/IdeationSlides__Page_4.png')"></span></a>
+            </li>
+          </ul>
+        </div>       
+      </div>
+    </div>
+    <div id="p1s4" class="pSection4 section pRight textStyles">
+      <div class="pTitle">
+        <h4>Prototyping</h4>
+      </div>
+      <div class="pSection">
+        <div class="pThumbRow">
+          <ul class="pThumbList">
+            <li>
+              <a href="#p1p1"><img src="img/PrototypingSlides__Page_1.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p1p1"><span style="background-image: url('img/PrototypingSlides__Page_1.png')"></span></a>
+            </li>
+            <li>
+              <a href="#p1p2"><img src="img/PrototypingSlides__Page_2.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p1p2"><span style="background-image: url('img/PrototypingSlides__Page_2.png')"></span></a>
+            </li>
+            <li>
+              <a href="#p1p3"><img src="img/PrototypingSlides__Page_3.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p1p3"><span style="background-image: url('img/PrototypingSlides__Page_3.png')"></span></a>
+            </li>
+          </ul>
+        </div>  
+        <div class="pHalf">
+          <h2>Lo-Fi / Mid-Fi Prototypes created an tested</h2>
+          <p>Moving into the rest of the process I broke off from my group with my own direction based on user feedback.</p>
+          <p>Much of the process for planning group travel is easily done through traditional communication. Finding a specific part of the process that we can provide value for the user is our goal.</p>
+          <h2>user feedback</h2>
+          <p>Travelers planning activities for groups need a better way to coordinate with participants because traditional methods are too time-consuming.</p>
+        </div>
+        
+      </div>
+    </div>
+    <div id="p1s5" class="pSection5 section pLeft textStyles">
+      <div class="pTitle">
+        <h4>Testing</h4>
+      </div>
+      <div class="pSection">
+        <div class="pHalf">
+          <h2>Key insights</h2>
+          <p>
+            <ul>
+            <li>An easier way to navigate to create trips and events is needed.</li>
+            <li>Tooltips would be useful to help users through the create trip and event processes.</li>
+            <li>User frustration could be avoided by saving event details in case the process is interrupted.</li>
+            </ul>
+          </p>
+        </div>
+        <div class="pImg">
+          <p><img src="img/proj1.png" class="nav"></p>
+        </div>
+      </div>
+    </div>
+    <div id="p1s6" class="pSection6 section pCenter textStyles">
+      <div class="pTitle">
+        <h4>Conclusion</h4>
+      </div>
+      <div class="pSection">
+        <div class="pHalf">
+          <h2>Summary</h2>
+          <p>Integrating user feedback during the research stage of the process allowed GroupUp to focus on what the user needed. This was possible because it helped identify which parts of the process were easily done through outside coordination and which parts the app could help with.</p>
+        </div>
+        <div class="pImg">
+          <p><img src="img/astronaut.png" class=""></p>
+        </div>
+        <!-- Figma Prototype iFrame -->
+        <!-- 
+        <div class="pImg">
+          <iframe style="border: 1px solid rgba(0, 0, 0, 0.1);" width="475" height="962" src="https://www.figma.com/embed?embed_host=share&url=https%3A%2F%2Fwww.figma.com%2Fproto%2F9Z1621jQpp7l1y6yebdXwF%2FClickable-Wireframe-04.2-3---IPHONE%3Fpage-id%3D0%253A1%26node-id%3D103%253A1134%26viewport%3D507%252C988%252C0.24%26scaling%3Dmin-zoom%26starting-point-node-id%3D103%253A1134" allowfullscreen></iframe>
+        </div>
+        -->
+      </div>
+    </div>
+  </section><!-- End Project 1 Content -->
+
+  <!-- Start Project 2 Content -->
+  <section id="p2Content" class="pContent hide">
+    <div id="div1"></div>
+    <div class="sidebar hide">
+      <div class="scrollBar">
+        <div class="scrollArrowUp"><img src="img/arrow-up.png"></div>
+        <div class="scrollArrowDown"><img src="img/arrow-down.png"></div>
+      </div>
+      <div id="dotContain2" class="dotContain">
+        <div id="mainDot2" class="ui-widget-content"><span class="dotScroll"></div>
+      </div>
+
+      <style>
+        #draggable { width: 150px; height: 150px; padding: 0.5em; }
+        </style>
+      <div class="scrollLine"></div>
+      
+      <div class="leftNav">
+        <div class="btn0 navFocus">Overview</div>
+        <div class="dots1 dots">
+          <span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="btn1">Research</div>
+        <div class="dots2 dots">
+          <span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="btn2">Definition</div>
+        <div class="dots3 dots">
+          <span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="btn3">Ideation</div>
+        <div class="dots4 dots">
+          <span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="btn4">Prototyping</div>
+        <div class="dots5 dots">
+          <span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="btn5">Testing</div>
+        <div class="dots6 dots">
+          <span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="btn6">Conclusion</div>
+      </div>
+    </div><!-- End Sidebar -->
+    <div id="p2s0" class="pOverview section pCenter textStyles">
+      <div class="pSection">
+        <div class="pHalf">
+          <h2>Case Study: DHS.gov - Government Agency Web and Mobile Redesign</h2>
+          <p>This individual student project was completed over the course of 4 weeks. The goal was to analyze and redesign a government agency website for improved usability and responsiveness. Improving and standardizing the visual design of the site to better fit the users perception of the agency was a key part of the process.</p>
+          <h2>My Role</h2>
+          <p>Design thinking was employed to tackle the full cycle of a redesign project. I took on the roles of UX Researcher, Information Architect, UI/UX Designer and Visual Designer.</p>
+        </div>
+        <div class="dhsLogo">
+          <div class="pImg dhsLogoImg">
+            <p><img src="img/dhsimg/dhsLogo.png" class=""></p>
+          </div>
+          <div class="dhsText">Homeland</div>
+          <div class="dhsText">Security</div>
+        </div>
+      </div>
+      <div class="lunarSurface">
+        <img src="img/lunar-surface.png">
+        <img src="img/astronaut.png" class="astronaut">
+      </div>
+
+        <a href="https://www.figma.com/file/YIvKMI9JKtIG7cNmK8htB9/DHS-Prototype?node-id=117%3A1424&t=Ms4yaV0i31utZVGG-1">Figma Mobile Prototype</a>
+        <a href="https://www.figma.com/file/YIvKMI9JKtIG7cNmK8htB9/DHS-Prototype?node-id=226%3A3819&t=Ms4yaV0i31utZVGG-1">Figma Web Protype</a>
+        <p></p><p></p>
+      </div>
+    
+    <div id="p2s1" class="pSection1 section pLeft textStyles">
+      <div class="pTitle">
+        <h4>The Beginning</h4>
+      </div>
+      <div class="pSection">
+        <div class="pHalf">
+          <h2>Initial User Research:</h2>
+          <p>I used traffic analysis of the website to establish the most common types of users and tasks. To help inform our usability research we created a proto-persona.
+
+            Website Traffic Analysis
+            Most common searches and traffic was related to entering the country
+            Demographics
+            Majority of traffic is men and women ages 25 to 45
+            </p>
+        </div>
+        <div class="pImg">
+          <p><img src="img/dhsimg/Demographics1.png" class="zImg"></p>
+        </div>
+      </div>
+      <div class="pCenter2">
+        <h2 class="hLeft">ProtoPersona</h2>
+        <p>Meet Lukas, our imaginary typical user based on my research, who will help us understand the challenges those users may face when using the site.</p>
+        <img src="img/dhsimg/ProtoPersona.png" class="cImg">
+        <p></p>
+        <p>Lukas is traveling to the US for business from Germany and needs to find information about the requirements for aliens entering the country. He knows he needs some sort of electronic documentation, but has never done it before.</p>
+      </div>
+
+      
+    </div>
+    <div id="p2s2" class="pSection2 section pLeft textStyles">
+      <div class="pTitle">
+        <h4>The Problem</h4>
+      </div>
+      <div class="pSection">
+        <div class="pHalf">
+          <h2>Typical user path:</h2>
+          <ol>
+            <li>Home page > How Do I?</li>
+            <li>For Travelers > Cross US Borders</li>
+            <li>International Visitor Requirements</li>
+            <li>Admission into the US > CBP site</li>
+          </ol>
+          <h2>Feedback we received from guerilla testing:</h2>
+          <ul>
+            <li>Navigation menu was overwhelming</li>
+            <li>“Bread-crumbs” were helpful for navigation</li>
+            <li>Hard to tell that the user has navigated away from dhs.gov to cpb.gov because of similar visual style and menu</li>
+          </ul>
+        </div>
+        <div class="pThumbRow">
+          <ul class="pThumbList">
+            <li>
+              <a href="#p2p1"><img src="img/dhsimg/Wireflow01.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p2p1"><span style="background-image: url('img/dhsimg/Wireflow01.png')"></span></a>
+            </li>
+            <li>
+              <a href="#p2p2"><img src="img/dhsimg/Wireflow02.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p2p2"><span style="background-image: url('img/dhsimg/Wireflow02.png')"></span></a>
+            </li>
+            <li>
+              <a href="#p2p3"><img src="img/dhsimg/Wireflow03.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p2p3"><span style="background-image: url('img/dhsimg/Wireflow03.png')"></span></a>
+            </li>
+            <li>
+              <a href="#p2p4"><img src="img/dhsimg/Wireflow04.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p2p4"><span style="background-image: url('img/dhsimg/Wireflow04.png')"></span></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="pSection fitH">
+        <div class="" >
+          <h2>User Testing</h2>
+          <p>User testing was expanded to additional tasks. Key pain points were identified.</p>
+            <ul>
+              <li>Opened topic link in new tab preventing user from using “back” button on browser
+              <li>Information overload for navigation menu, hard to figure out where to find information
+              <li>Confusing to navigate menu and the “How Do I?” and “Get Involved” topics were too vague
+              <li>Overall very cluttered information and often topics overlapped or shown twice
+            </ul>
+          <p>These testing results were used to annotate usability and heuristic issues for the site.</p>
+        </div>
+      </div>
+      <div class="pCenter2">
+        <img src="img/dhsimg/UserTesting.png" class="cImg">
+        <p></p>
+      </div>
+      <blockquote class="quote dhs-quote-border">
+        <p>"This site is kind of a mess... t's like a giant spider web..."</p>
+      </blockquote>
+      <div class="pSection">
+        <div class="pHalf">
+          <h2>Priority Matrix </h2>
+          <p>This tool helped me determine what to focus on.</p>
+          <ul>
+            <li>Hard to find menu items</li>
+            <li>Sub-topics not clear</li>
+            <li>Poor organization</li>
+            <li>Hard to keep track of where user is on page</li>
+        </div>
+
+        <div class="pImg">
+          <a href="#p2p5"><img src="img/dhsimg/PriorityMatrix.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p2p5"><span style="background-image: url('img/dhsimg/PriorityMatrix.png')"></span></a>
+        </div>
+      </div>
+    </div>
+    <div id="p2s3" class="pSection3 section pLeft textStyles">
+      <div class="pTitle">
+        <h4>The Solution</h4>
+      </div>
+      <div class="pSection">
+        <div class="pHalf">
+          <h2>Mood Board</h2>
+          <p>This tool helped me determine what to focus on.</p>
+          <p>
+            Mood board focuses on creating more visual distinction in the navigation menu while maintaining the agency's identity.
+          </p>
+          <p><a href="https://projects.invisionapp.com/boards/T943ZFXRADN/">Invision Link</a></p>
+        </div>
+        <div class="pImg">
+          <a href="#p2p6"><img src="img/dhsimg/MoodBoard.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p2p6"><span style="background-image: url('img/dhsimg/MoodBoard.png')"></span></a>
+        </div>
+      </div>
+      <div class="pCenter2">
+        <h2 class="hLeft">Usability and Heuristic Analysis</h2>
+        <p>Testing results were used to annotate usability and heuristic issues for the site.</p>
+        <div class="pThumbRow">
+          <ul class="pThumbList">
+            <li>
+              <a href="#p2u1"><img src="img/dhsimg/Annotations1.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p2u1"><span style="background-image: url('img/dhsimg/Annotations1.png')"></span></a>
+            </li>
+            <li>
+              <a href="#p2u2"><img src="img/dhsimg/Annotations2.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p2u2"><span style="background-image: url('img/dhsimg/Annotations2.png')"></span></a>
+            </li>
+            <li>
+              <a href="#p2u3"><img src="img/dhsimg/AnnotationsMobile.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p2u3"><span style="background-image: url('img/dhsimg/AnnotationsMobile.png')"></span></a>
+            </li>
+          </ul>
+        </div>
+        <p></p>
+      </div>
+      <div class="pCenter2" style="margin-top: 25px;">
+        <p>Many of the sub-sites within DHS.gov caused confusion among users because the navigation completely changes. These pages should be integrated into the main navigation.</p>
+        <div class="pThumbRow">
+          <ul class="pThumbList">
+            <li>
+              <a href="#p2u4"><img src="img/dhsimg/SubSite1.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p2u4"><span style="background-image: url('img/dhsimg/SubSite1.png')"></span></a>
+            </li>
+            <li>
+              <a href="#p2u5"><img src="img/dhsimg/SubSite2.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p2u5"><span style="background-image: url('img/dhsimg/SubSite2.png')"></span></a>
+            </li>
+            <li>
+              <a href="#p2u6"><img src="img/dhsimg/SubSite3.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p2u6"><span style="background-image: url('img/dhsimg/SubSite3.png')"></span></a>
+            </li>
+            <li>
+              <a href="#p2u7"><img src="img/dhsimg/SubSite4.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p2u7"><span style="background-image: url('img/dhsimg/SubSite4.png')"></span></a>
+            </li>
+            <li>
+              <a href="#p2u8"><img src="img/dhsimg/SubSite5.png" class="pThumb"></a>
+              <a href="#null" class="lightbox" id="p2u8"><span style="background-image: url('img/dhsimg/SubSite5.png')"></span></a>
+            </li>
+          </ul>
+        </div>
+        <p></p>
+      </div>
+      <div class="pSection" style="margin-top: 25px;">
+        <div class="pHalf">
+          <h2>Card Sorting</h2>
+          <p>Based on user feedback that navigation menu categories were not easy to understand, card sorting was used to evaluate logical categories.</p>
+
+          <p><a href="https://www.figma.com/file/68vLSin7LWOzHz1Alxa6uw/DHS-CardSorting?node-id=1%3A13">Figma Link</a></p>
+        </div>
+        <div class="pImg">
+          <p><img src="img/dhsimg/CardSort.png" class="maxW"></p>
+        </div>
+      </div>
+      <div class="pSection" style="margin-top: 25px;">
+        <div class="pHalf">
+          <h2>Site Map</h2>
+          <p>Created a new sitemap based on the card sorting.</p>
+
+          <p><a href="https://www.figma.com/file/uPScGavKf9qV3sqGeX4vnN/DHS-Sitemap?node-id=4856%3A125">Figma Link</a></p>
+        </div>
+        <div class="pImg">
+          <p><img src="img/dhsimg/Sitemap.png" class="maxW" ></p>
+        </div>
+      </div>
+      
+    </div>
+    <div id="p2s4" class="pSection4 section pLeft textStyles">
+      <div class="pTitle">
+        <h4>Wireframing</h4>
+      </div>
+      <div class="pCenter2" style="">
+        <p>Wireframes created for the homepage using mobile first and atomic design thinking.</p>
+        <div class="imgRow">
+          <img src="img/dhsimg/WireframeMobile1.png" class="rImg">
+          <img src="img/dhsimg/WireframeMobile2.png" class="rImg">
+          <img src="img/dhsimg/WireframeMobile3.png" class="rImg">
+        </div>
+        <p></p>
+        <div class="imgRow">
+          <img src="img/dhsimg/WireframeTablet1.png" class="rImgL">
+          <img src="img/dhsimg/WireframeTablet2.png" class="rImgL">
+        </div>
+        <p></p>
+        <div class="imgRow">
+          <img src="img/dhsimg/WireframeWeb1.png" class="rImgL">
+          <img src="img/dhsimg/WireframeWeb2.png" class="rImgL">
+        </div>
+        <p></p>
+      </div>
+    </div>
+    <div id="p2s5" class="pSection5 section pLeft textStyles">
+      <div class="pTitle">
+        <h4>Prototyping</h4>
+      </div>
+      <div class="pCenter2">
+        <h2 class="hLeft">Style Guide</h2>
+        <p>I expanding the visual style to be used on the site and applied it to the wireframes to create prototypes.</p>
+        <div class="pCenter2">
+          <img src="img/dhsimg/StyleTile.png" class="">
+          <p></p>
+        </div>
+        <p></p>
+      </div>
+      <div class="pCenter2" style="margin-top: 25px;">
+        <h2>Mobile Prototype</h2>
+          <a href="https://www.figma.com/file/YIvKMI9JKtIG7cNmK8htB9/DHS-Prototype?node-id=117%3A1424&t=Ms4yaV0i31utZVGG-1">Figma Link</a>
+        <p></p>
+        <div class="imgRow">
+          <img src="img/dhsimg/PrototypeMobile1.png" class="rImg">
+          <img src="img/dhsimg/PrototypeMobile2.png" class="rImg">
+          <img src="img/dhsimg/PrototypeMobile3.png" class="rImg">
+        </div>
+        <p></p><p></p>
+        <h2>Web Prototype</h2>
+        <a href="https://www.figma.com/file/YIvKMI9JKtIG7cNmK8htB9/DHS-Prototype?node-id=226%3A3819&t=Ms4yaV0i31utZVGG-1">Figma Link</a>
+        <p></p>
+        <div class="imgRow">
+          <img src="img/dhsimg/StyleDemo1.png" class="rImgL">
+          <img src="img/dhsimg/StyleDemo2.png" class="rImgL">
+        </div>
+        <p></p>
+      </div>
+      </div>
+    </div>
+    <div id="p2s6" class="pSection6 section pLeft textStyles">
+      <div class="pTitle">
+        <h4>Conclusion</h4>
+      </div>
+      <div class="pSection">
+        <div class="pHalf">
+          <h2>What I Learned</h2>
+          <p>Organizing information using content chunking is not the easiest thing to do. Approaching the problem from the perspective of the typical user helps, but doesn't solve the problem.</p>
+        </div>
+        <div class="pImg">
+          <p><img src="img/astronaut.png" class=""></p>
+        </div>
+      </div>
+    </div>
+  </section><!-- End Project 2 Content -->
+
+  <!-- Start Project 3 Content -->
+  <section id="p3Content" class="pContent hide">
+    <div class="sidebar hide">
+      <div class="scrollBar">
+        <div class="scrollArrowUp"><img src="img/arrow-up.png"></div>
+        <div class="scrollArrowDown"><img src="img/arrow-down.png"></div>
+      </div>
+      <div id="dotContain3" class="dotContain">
+        <div id="mainDot3" class="ui-widget-content"><span class="dotScroll"></div>
+      </div>
+
+      <style>
+        #draggable { width: 150px; height: 150px; padding: 0.5em; }
+        </style>
+      <div class="scrollLine"></div>
+      
+      <div class="leftNav">
+        <div class="btn0 navFocus">Overview</div>
+        <div class="dots1 dots">
+          <span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="btn1">Research</div>
+        <div class="dots2 dots">
+          <span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="btn2">Definition</div>
+        <div class="dots3 dots">
+          <span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="btn3">Ideation</div>
+        <div class="dots4 dots">
+          <span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="btn4">Prototyping</div>
+        <div class="dots5 dots">
+          <span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="btn5">Testing</div>
+        <div class="dots6 dots">
+          <span class="dot"></span><span class="dot"></span>
+        </div>
+        <div class="btn6">Conclusion</div>
+      </div>
+    </div><!-- End Sidebar -->
+    </div>
+    <div id="p3s0" class="pOverview section pCenter textStyles">
+      <div class="pTitle">
+        <h4>Rescue Cats:</h4>
+        <h6>Non-Profit Responsive Web Design</h6>
+      </div>
+      <div class="pSection">
+        <div class="pHalf">
+          <h2>Summary</h2>
+          <p>Working as a team of five dedicated individuals we were tasked with redesigning an existing website, focusing on implementing mobile-first principles. We followed a comprehensive UX/UI design process, including stages such as research, definition, ideation, prototyping, testing, and iteration. Our goal was to create an intuitive and user-friendly website for Rescue Cats, a real non-profit organization dedicated to saving and adopting cats.</p>
+          <p>To facilitate our design process and collaboration, we utilized various tools, including: <b>Figma, Miro, Google Suite, and Adobe Illustrator</b></p>
+        </div>
+        <div class="pImg">
+          <p><img src="img/RescueCatsLogo.png" class="nav"></p>
+        </div>
+      </div>
+        <p></p>
+        <a href="https://www.figma.com/proto/5Xo26OdodPVcfUSoPM9snC/Webpage-Prototype?node-id=225-10294&p=f&t=m7l50RL814R3Lt19-1&scaling=contain&content-scaling=fixed&page-id=5%3A2&starting-point-node-id=225%3A10294">Figma Web Protype</a>
+        
+        <a href="https://www.figma.com/proto/5Xo26OdodPVcfUSoPM9snC/Webpage-Prototype?node-id=20-63&p=f&t=GmQiEkBjXh7snJp9-1&scaling=min-zoom&content-scaling=fixed&page-id=18%3A60">Figma Style Guide</a>
+        <p></p><p></p>
+        
+    </div>
+    
+    <div id="p3s1" class="pSection1 section pLeft textStyles">
+      <div class="pTitle">
+        <h4>Research</h4>
+      </div>
+      <div class="pSection">
+        <div class="pHalf">
+          <h2>Empathize</h2>
+          <p>We began by empathizing with Rescue Cats' target audience and conducted extensive research to understand their needs and pain points. Through interviews and initial usability tests, we identified crucial insights. Users expressed difficulty in navigating the website due to jumbled information and outdated navigation features. One of our user personas, Susan, exemplified the need for an improved adoption process to find a rescue pet for her family.</p>
+        </div>
+        <div class="pImg">
+          <p><img src="img/RescueCats/RescueCats-UserPersona.png" class="pThumb"></p>
+        </div>
+      </div>
+    </div>
+    <div id="p3s2" class="pSection2 section pRight textStyles">
+      <div class="pTitle">
+        <h4>Definition</h4>
+      </div>
+      <div class="pSection">
+        <div class="pHalf">
+          <h2>User Centered Design</h2>
+          <p>Based on our research findings, we developed a problem statement that addressed the issues faced by Rescue Cats. We observed that the website lacked a user-friendly navigation system, leading users to seek other non-profit organizations. Our aim was to enhance Rescue Cats' website, making it easier for individuals interested in no-kill shelters to adopt owner-released and homeless cats.</p>
+        </div>
+        <div class="pImg">
+          <p><img src="img/RescueCats/RescueCats-StyleGuide.png" class="pThumb"></p>
+        </div>
+      </div>
+    </div>
+    <div id="p3s3" class="pSection3 section pLeft textStyles">
+      <div class="pTitle">
+        <h4>Ideation</h4>
+      </div>
+      <div class="pSection">
+        <div class="pHalf">
+          <h2>Wireframes and Lo-Fi</h2>
+          <p>During the ideation phase, we brainstormed ideas and generated wireframe sketches to visualize potential solutions. Taking user insights into account, we created low-fidelity prototypes to refine our concepts further. User flows and responsive design iterations were also developed to ensure a seamless experience across web and mobile platforms.</p>
+        </div>
+        <div class="pImg">
+          <p><img src="img/RescueCats/heuristics.png" class="pThumb"></p>
+        </div>
+      </div>
+    </div>
+    <div id="p3s4" class="pSection4 section pRight textStyles">
+      <div class="pTitle">
+        <h4>Prototyping</h4>
+      </div>
+      <div class="pSection">
+        <div class="pHalf">
+          <h2>Summary</h2>
+          <p>Moving forward, we transformed our wireframes into mid-fidelity and high-fidelity prototypes. These interactive prototypes allowed us to evaluate the user experience more effectively. Additionally, we created a UI style tile to establish a cohesive visual identity for the website.</p>
+        </div>
+        <div class="pImg">
+          <p><img src="img/RescueCats/lofi-prototype.gif" class="pThumb"></p>
+        </div>
+      </div>
+    </div>
+    <div id="p3s5" class="pSection5 section pLeft textStyles">
+      <div class="pTitle">
+        <h4>Testing</h4>
+      </div>
+      <div class="pSection">
+        <div class="pHalf">
+          <h2>User Testing</h2>
+          <p>To validate our design decisions, we conducted extensive testing with target users. We focused on areas such as filtering, navigation, and page indicators. The feedback and insights gained from these tests enabled us to iterate and refine our designs, ensuring optimal usability and satisfaction.</p>
+        </div>
+        <div class="pImg">
+          <p><img src="img/RescueCats/heuristics.png" class="pThumb"></p>
+        </div>
+      </div>
+    </div>
+    <div id="p3s6" class="pSection6 section pCenter textStyles">
+      <div class="pTitle">
+        <h4>Conclusion</h4>
+      </div>
+      <div class="pSection">
+        <div class="pHalf">
+          <h2>What I Learned</h2>
+          <p>Through our collaborative efforts and adherence to the UX/UI design process, we successfully redesigned Rescue Cats' website, addressing the initial pain points and enhancing the overall user experience. Our goal of streamlining the adoption process and prioritizing information on pet care has the potential to increase site traffic and donations, ultimately contributing to the organization's mission of saving rescue cats.</p>        </div>
+        <div class="pImg">
+          <p><img src="img/RescueCats/cat1.png" class="pThumb"></p>
+        </div>
+        <div class="pImg">
+          <p><img src="img/astronaut.png" class=""></p>
+        </div>
+      </div>
+    </div>
+  </section><!-- End Project 3 Content -->
+
+  <!-- Start Motion Content -->
+  <section id="motionContent" class="pContent hide">
+    <div id="p4s0" class="pOverview section pCenter textStyles">
+      <div class="pTitle">
+        <h4>Motion Graphics</h4>
+        <h6 style="text-align: center;">Demo Reel</h6>
+      </div>
+      <div class="vSection">
+        <div class="video-container">
+          <div class="vid">
+            <iframe src="https://player.vimeo.com/video/12401283?title=0&amp;byline=0&amp;portrait=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" 
+              frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" 
+              title="MN - Motion Reel"></iframe>
+          </div>
+          <!--
+          <div class="vid">
+            <iframe src="https://player.vimeo.com/video/81867207?title=0&amp;byline=0&amp;portrait=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" 
+              frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" 
+              title="PCS Motion Graphics Reel"></iframe>
+          </div>
+          -->
+        </div>
+      </div>
+    </div>
+  </section><!-- End Motion Content -->
+
+    <div class="footer">
+      <h1>Footer</h1>
+    </div>
+  </div>
+  
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="js/index.js"></script>
+  <script src="js/jquery.waypoints.js"></script>
+  <script src="js/jquery-ui.min.js"></script>
+  <script src="js/orbit.js"></script>
+
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+</body>
+</html>

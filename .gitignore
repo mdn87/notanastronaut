@@ -1,7 +1,10 @@
-node_modules/
-dist/
 .DS_Store
-test-results/
-playwright-report/
+node_modules/
+.claude/
+*.zip
+check-field.ts
+debug-wasm.mjs
 .superpowers/
 .worktrees/
+*.psd
+*.ai

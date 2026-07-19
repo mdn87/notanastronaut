@@ -1,0 +1,4 @@
+AddType image/png .png
+AddType image/jpeg .jpg .jpeg
+AddType image/webp .webp
+
