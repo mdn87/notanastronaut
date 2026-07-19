@@ -81,4 +81,31 @@ describe('DartPhysics', () => {
       dart.dispose();
     }
   });
+
+  it('the ship is never physically affected by stars (one-way coupling)', async () => {
+    // Params tuned from the spec default (7, {count:4096, radius:60, thickness:8}): that
+    // config does record hits, but the galaxy's random x/y scatter makes most of them
+    // grazing (mostly lateral deflection, little forward-speed loss), so pre-fix the
+    // aggregate `speed` signal barely moves even while genuinely colliding. Shrinking the
+    // disk (radius 20, thickness 2, count 16000) packs more mass near the dart's straight
+    // z-axis path out of the origin, producing a real near-head-on hit. Verified pre-fix:
+    // this exact seed/opts pair yields hits=1 and a genuine 18.67 u/s single-frame speed
+    // collapse (a light-mass star reversing the ship's z-velocity via solver restitution),
+    // i.e. the test fails against current solver behavior as required by TDD.
+    const dart = await DartPhysics.create({}, makeSpiralGalaxy(3, { count: 16000, radius: 20, thickness: 2 }));
+    try {
+      let prevSpeed = 0, hits = 0, maxDrop = 0;
+      for (let i = 0; i < 240; i++) {
+        dart.step(1 / 60, input({ forward: 1 }), 0);
+        const s = dart.state();
+        if (prevSpeed > 10) maxDrop = Math.max(maxDrop, prevSpeed - s.speed);
+        prevSpeed = s.speed;
+        hits = dart.activeStars().hitCount;
+      }
+      expect(hits).toBeGreaterThan(0);      // we really plowed through stars
+      expect(maxDrop).toBeLessThan(0.5);    // and never lost speed to a collision
+    } finally {
+      dart.dispose();
+    }
+  });
 });

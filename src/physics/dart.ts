@@ -107,7 +107,7 @@ export class DartPhysics {
         z: thr.z * this.throttle + bnd.z,
       }, true);
       this.world.step(this.stars.events);
-      this.stars.afterStep(FIXED, this.body.translation());
+      this.stars.afterStep(FIXED, this.body.translation(), this.body.linvel());
       const nextVelocity = this.body.linvel();
       // Alignment (speed-preserving rotation toward the nose), then the hard cap.
       const av = alignVelocity({ x: nextVelocity.x, y: nextVelocity.y, z: nextVelocity.z }, heading, sense, this.o.align, FIXED);

@@ -30,7 +30,6 @@ interface Slot {
   vy: number;
   vz: number;
   pendingHit: boolean;
-  waitForImpact: boolean;
 }
 
 const ACTIVE_RADIUS = 35;
@@ -39,6 +38,8 @@ const RELEASE_RADIUS_SQ = RELEASE_RADIUS * RELEASE_RADIUS;
 const HOLD = 0.9;
 const FADE = 0.6;
 const LINEAR_DAMPING = 0.25;
+const SCATTER_PUSH = 1.0;  // outward kick as a multiple of ship speed
+const SCATTER_CARRY = 0.5; // share of the ship's velocity carried into the star
 
 const rotateYInto = (p: Vec3, angle: number, out: Vec3): Vec3 => {
   const c = Math.cos(angle), s = Math.sin(angle);
@@ -73,7 +74,6 @@ export class StarCollisions {
     const slot = this.slots[slotIndex]!;
     if (slot.phase === 'armed' && !slot.pendingHit) {
       slot.pendingHit = true;
-      slot.waitForImpact = true;
     }
   };
 
@@ -99,8 +99,8 @@ export class StarCollisions {
         .lockRotations()
         .setAdditionalMass(1));
       const collider = world.createCollider(RAPIER.ColliderDesc.ball(1)
+        .setSensor(true)
         .setDensity(0)
-        .setRestitution(0.7)
         .setCollisionGroups(0x00020001)
         .setActiveEvents(RAPIER.ActiveEvents.COLLISION_EVENTS), body);
       body.setEnabled(false);
@@ -120,7 +120,6 @@ export class StarCollisions {
         vy: 0,
         vz: 0,
         pendingHit: false,
-        waitForImpact: false,
       });
       this.colliderSlots.set(collider.handle, i);
     }
@@ -160,7 +159,6 @@ export class StarCollisions {
       slot.vy = 0;
       slot.vz = 0;
       slot.pendingHit = false;
-      slot.waitForImpact = false;
       slot.body.setEnabled(true);
       slot.body.setTranslation(this.worldStar, true);
       slot.body.setLinvel(this.zero, true);
@@ -170,17 +168,13 @@ export class StarCollisions {
     }
   }
 
-  afterStep(dt: number, shipPosition: Vec3): void {
+  afterStep(dt: number, shipPosition: Vec3, shipVelocity: Vec3): void {
     this.events.drainCollisionEvents(this.onCollision);
     for (let i = 0; i < this.slots.length; i++) {
       const slot = this.slots[i]!;
       if (slot.phase === 'armed') {
         if (slot.pendingHit) {
-          if (slot.waitForImpact) {
-            slot.waitForImpact = false;
-          } else {
-            this.scatter(slot);
-          }
+          this.scatter(slot, shipPosition, shipVelocity);
           continue;
         }
         const dx = slot.anchorX - shipPosition.x;
@@ -228,24 +222,27 @@ export class StarCollisions {
     slot.phase = 'free';
     slot.age = 0;
     slot.pendingHit = false;
-    slot.waitForImpact = false;
     slot.body.setLinvel(this.zero, false);
     slot.body.setEnabled(false);
   }
 
-  private scatter(slot: Slot): void {
-    const position = slot.body.translation();
-    const velocity = slot.body.linvel();
-    slot.x = position.x;
-    slot.y = position.y;
-    slot.z = position.z;
-    slot.vx = velocity.x;
-    slot.vy = velocity.y;
-    slot.vz = velocity.z;
+  // One-way coupling: the ship never feels stars (sensor colliders), so the
+  // scatter velocity is synthesized — a radial shove away from the ship plus
+  // a share of the ship's velocity, independent of star mass (heavy cores
+  // fly as dramatically as dust; the old solver kick barely moved them).
+  private scatter(slot: Slot, shipPosition: Vec3, shipVelocity: Vec3): void {
+    const speed = Math.hypot(shipVelocity.x, shipVelocity.y, shipVelocity.z);
+    let dx = slot.x - shipPosition.x, dy = slot.y - shipPosition.y, dz = slot.z - shipPosition.z;
+    const dl = Math.hypot(dx, dy, dz);
+    if (dl > 1e-6) { dx /= dl; dy /= dl; dz /= dl; }
+    else if (speed > 1e-6) { dx = shipVelocity.x / speed; dy = shipVelocity.y / speed; dz = shipVelocity.z / speed; }
+    else { dx = 0; dy = 1; dz = 0; }
+    slot.vx = dx * speed * SCATTER_PUSH + shipVelocity.x * SCATTER_CARRY;
+    slot.vy = dy * speed * SCATTER_PUSH + shipVelocity.y * SCATTER_CARRY;
+    slot.vz = dz * speed * SCATTER_PUSH + shipVelocity.z * SCATTER_CARRY;
     slot.phase = 'scattered';
     slot.age = 0;
     slot.pendingHit = false;
-    slot.waitForImpact = false;
     slot.body.setEnabled(false);
     this.out.hitCount++;
   }
