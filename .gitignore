@@ -5,3 +5,8 @@ test-results/
 playwright-report/
 .superpowers/
 .worktrees/
+*.zip
+
+# Old notanastronaut.net site, kept locally as reference only — never commit
+notanastronaut.net/
+notanastronaut.net.zip

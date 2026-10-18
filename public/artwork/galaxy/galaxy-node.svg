@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-70 -70 140 140" width="280" height="280" role="img" aria-label="Mission marker">
+  <defs>
+    <clipPath id="nodeClip"><circle r="46"/></clipPath>
+    <filter id="nodeGlow" x="-70%" y="-70%" width="240%" height="240%">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+  </defs>
+  <!-- Grayscale on transparent: the renderer multiplies by each node's accent,
+       so white -> full accent, gray -> shaded accent, near-black -> dark rim.
+       A soft glow reads as "a place" without any Saturn rings. -->
+  <circle r="50" fill="#ffffff" opacity="0.5" filter="url(#nodeGlow)"/>
+  <circle r="46" fill="#d6dee3" stroke="#243036" stroke-width="6"/>
+  <g clip-path="url(#nodeClip)">
+    <path fill="#6f7e87" d="M-52 14 C -20 -6 18 -6 52 16 L52 60 L-52 60 Z"/>
+    <ellipse cx="-15" cy="-16" rx="18" ry="12" fill="#ffffff" opacity="0.85"/>
+  </g>
+</svg>
