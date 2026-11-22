@@ -1,7 +1,7 @@
 /weir-field/
   Content-Type: text/html; charset=utf-8
   Content-Security-Policy: default-src 'none'; base-uri 'none'; form-action 'none'
-  Cache-Control: no-store
+  Cache-Control: no-store, no-transform
   ! Access-Control-Allow-Origin
   ! Report-To
   ! NEL
